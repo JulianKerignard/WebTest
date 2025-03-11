@@ -1,0 +1,528 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeBonPlan- Stages Favoris</title>
+    <link rel="stylesheet" href="../../Asset/Css/Style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="dashboard-body">
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo">
+                <i class="fas fa-briefcase"></i>
+                StageConnect
+            </a>
+            <button class="close-sidebar-btn" id="closeSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="/api/placeholder/100/100" alt="Photo de profil">
+            </div>
+            <div class="user-info">
+                <h3>Marie Dubois</h3>
+                <p>Étudiante en Informatique</p>
+                <span class="user-status">
+                    <i class="fas fa-circle"></i> En recherche de stage
+                </span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="dashboard.html"><i class="fas fa-home"></i> Tableau de bord</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-search"></i> Rechercher des stages</a>
+                </li>
+                <li>
+                    <a href="mes-candidatures.html"><i class="fas fa-file-alt"></i> Mes candidatures</a>
+                </li>
+                <li class="active">
+                    <a href="#"><i class="fas fa-star"></i> Stages favoris</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-bell"></i> Notifications</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-user"></i> Mon profil</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-cog"></i> Paramètres</a>
+                </li>
+                <li class="sidebar-divider"></li>
+                <li>
+                    <a href="#"><i class="fas fa-question-circle"></i> Aide</a>
+                </li>
+                <li>
+                    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="header-search">
+                <div class="input-with-icon">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Rechercher un stage...">
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="notification-badge">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="message-badge">
+                    <i class="fas fa-envelope"></i>
+                    <span class="badge">5</span>
+                </div>
+                <div class="user-dropdown">
+                    <img src="/api/placeholder/40/40" alt="Photo de profil">
+                    <span>Marie Dubois</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="page-title">
+                <h1>Mes Stages Favoris</h1>
+                <p>Consultez et gérez vos offres de stage préférées</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>9</h3>
+                        <p>Stages en favoris</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>5</h3>
+                        <p>Ajoutés cette semaine</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>3</h3>
+                        <p>Candidatures envoyées</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>4</h3>
+                        <p>Vus récemment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres pour les stages favoris -->
+            <div class="dashboard-card filter-controls">
+                <div class="filter-header">
+                    <h2>Filtrer mes favoris</h2>
+                </div>
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label>Domaine</label>
+                        <select id="domainFilter">
+                            <option value="all">Tous les domaines</option>
+                            <option value="tech">Informatique & Tech</option>
+                            <option value="marketing">Marketing & Communication</option>
+                            <option value="finance">Finance & Comptabilité</option>
+                            <option value="design">Design & Créativité</option>
+                            <option value="data">Data & Analyse</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Localisation</label>
+                        <select id="locationFilter">
+                            <option value="all">Toutes les localisations</option>
+                            <option value="paris">Paris</option>
+                            <option value="lyon">Lyon</option>
+                            <option value="marseille">Marseille</option>
+                            <option value="bordeaux">Bordeaux</option>
+                            <option value="nantes">Nantes</option>
+                            <option value="toulouse">Toulouse</option>
+                            <option value="remote">Télétravail</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Trier par</label>
+                        <select id="sortFilter">
+                            <option value="date-desc">Ajouté récemment</option>
+                            <option value="date-asc">Ajouté il y a longtemps</option>
+                            <option value="company">Entreprise (A-Z)</option>
+                            <option value="duration">Durée</option>
+                            <option value="salary">Rémunération</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-primary btn-sm">Appliquer</button>
+                        <button class="btn btn-outline btn-sm">Réinitialiser</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des stages favoris -->
+            <div class="dashboard-card">
+                <div class="card-header-alt">
+                    <h2>Vos stages sauvegardés (9)</h2>
+                    <div class="card-actions">
+                        <div class="view-options">
+                            <button class="view-btn active" data-view="grid"><i class="fas fa-th-large"></i></button>
+                            <button class="view-btn" data-view="list"><i class="fas fa-list"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Affichage des stages en grille -->
+                <div class="favorites-container">
+                    <div class="internship-grid">
+                        <!-- Stage 1 -->
+                        <div class="internship-card favorite-card">
+                            <div class="card-header">
+                                <div class="company-logo">NX</div>
+                                <div class="card-title">
+                                    <h3>Développeur Backend</h3>
+                                    <div class="company-name">NextCloud</div>
+                                </div>
+                                <button class="bookmark-btn active">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="internship-details">
+                                    <div class="detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span class="detail-text">Paris, France</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <span class="detail-text">900€/mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span class="detail-text">6 mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <span class="detail-text">Bac+4/5</span>
+                                    </div>
+                                </div>
+                                <p>Participez au développement de notre infrastructure backend cloud pour améliorer les performances et ajouter de nouvelles fonctionnalités.</p>
+                                <div class="internship-tags">
+                                    <span class="tag">Python</span>
+                                    <span class="tag">Django</span>
+                                    <span class="tag">API</span>
+                                    <span class="tag">PostgreSQL</span>
+                                </div>
+                            </div>
+                            <div class="card-footer favorite-actions">
+                                <span class="added-date">Ajouté le 20/03/2025</span>
+                                <div class="action-buttons">
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Détails</a>
+                                    <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Postuler</a>
+                                    <button class="btn-icon btn-remove"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 2 -->
+                        <div class="internship-card favorite-card">
+                            <div class="card-header">
+                                <div class="company-logo">TD</div>
+                                <div class="card-title">
+                                    <h3>Marketing Digital</h3>
+                                    <div class="company-name">TechDream</div>
+                                </div>
+                                <button class="bookmark-btn active">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="internship-details">
+                                    <div class="detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span class="detail-text">Lyon, France</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <span class="detail-text">700€/mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span class="detail-text">4 mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <span class="detail-text">Bac+3/4</span>
+                                    </div>
+                                </div>
+                                <p>Rejoignez notre équipe marketing pour développer des campagnes digitales innovantes et analyser leur performance.</p>
+                                <div class="internship-tags">
+                                    <span class="tag">SEO</span>
+                                    <span class="tag">Google Ads</span>
+                                    <span class="tag">Social Media</span>
+                                    <span class="tag">Analytics</span>
+                                </div>
+                            </div>
+                            <div class="card-footer favorite-actions">
+                                <span class="added-date">Ajouté le 18/03/2025</span>
+                                <div class="action-buttons">
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Détails</a>
+                                    <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Postuler</a>
+                                    <button class="btn-icon btn-remove"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 3 -->
+                        <div class="internship-card favorite-card">
+                            <div class="card-header">
+                                <div class="company-logo">GS</div>
+                                <div class="card-title">
+                                    <h3>Data Analyst</h3>
+                                    <div class="company-name">Green Solutions</div>
+                                </div>
+                                <button class="bookmark-btn active">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="internship-details">
+                                    <div class="detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span class="detail-text">Bordeaux, France</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <span class="detail-text">900€/mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span class="detail-text">6 mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <span class="detail-text">Bac+5</span>
+                                    </div>
+                                </div>
+                                <p>Stage en analyse de données environnementales pour aider à l'optimisation de nos processus écologiques et à la prise de décision.</p>
+                                <div class="internship-tags">
+                                    <span class="tag">Python</span>
+                                    <span class="tag">R</span>
+                                    <span class="tag">SQL</span>
+                                    <span class="tag">Tableau</span>
+                                </div>
+                            </div>
+                            <div class="card-footer favorite-actions">
+                                <span class="added-date">Ajouté le 15/03/2025</span>
+                                <div class="action-buttons">
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Détails</a>
+                                    <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Postuler</a>
+                                    <button class="btn-icon btn-remove"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 4 -->
+                        <div class="internship-card favorite-card">
+                            <div class="card-header">
+                                <div class="company-logo">AB</div>
+                                <div class="card-title">
+                                    <h3>Développeur Full Stack</h3>
+                                    <div class="company-name">Acme Branding</div>
+                                </div>
+                                <button class="bookmark-btn active">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="internship-details">
+                                    <div class="detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span class="detail-text">Paris, France</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <span class="detail-text">800-1000€/mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span class="detail-text">6 mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <span class="detail-text">Bac+4/5</span>
+                                    </div>
+                                </div>
+                                <p>Stage au sein d'une équipe de développeurs pour participer à la création de nouvelles fonctionnalités sur notre plateforme e-commerce.</p>
+                                <div class="internship-tags">
+                                    <span class="tag">React</span>
+                                    <span class="tag">Node.js</span>
+                                    <span class="tag">MongoDB</span>
+                                    <span class="tag">Agile</span>
+                                </div>
+                            </div>
+                            <div class="card-footer favorite-actions">
+                                <span class="status-badge application-sent">Candidature envoyée</span>
+                                <div class="action-buttons">
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Détails</a>
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-file-alt"></i> Ma candidature</a>
+                                    <button class="btn-icon btn-remove"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 5 -->
+                        <div class="internship-card favorite-card">
+                            <div class="card-header">
+                                <div class="company-logo">CI</div>
+                                <div class="card-title">
+                                    <h3>UX/UI Designer</h3>
+                                    <div class="company-name">Creative Impulse</div>
+                                </div>
+                                <button class="bookmark-btn active">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="internship-details">
+                                    <div class="detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span class="detail-text">Nantes, France</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <span class="detail-text">750€/mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span class="detail-text">5 mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <span class="detail-text">Bac+3/4</span>
+                                    </div>
+                                </div>
+                                <p>Participez à la conception d'interfaces utilisateur intuitives et esthétiques pour nos applications mobiles et web.</p>
+                                <div class="internship-tags">
+                                    <span class="tag">Figma</span>
+                                    <span class="tag">Adobe XD</span>
+                                    <span class="tag">Sketch</span>
+                                    <span class="tag">Prototype</span>
+                                </div>
+                            </div>
+                            <div class="card-footer favorite-actions">
+                                <span class="status-badge application-sent">Candidature envoyée</span>
+                                <div class="action-buttons">
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Détails</a>
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-file-alt"></i> Ma candidature</a>
+                                    <button class="btn-icon btn-remove"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage 6 -->
+                        <div class="internship-card favorite-card">
+                            <div class="card-header">
+                                <div class="company-logo">DS</div>
+                                <div class="card-title">
+                                    <h3>Développeur Mobile</h3>
+                                    <div class="company-name">DataSphere</div>
+                                </div>
+                                <button class="bookmark-btn active">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="internship-details">
+                                    <div class="detail-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span class="detail-text">Toulouse, France</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-euro-sign"></i>
+                                        <span class="detail-text">800€/mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span class="detail-text">4 mois</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-graduation-cap"></i>
+                                        <span class="detail-text">Bac+3/4</span>
+                                    </div>
+                                </div>
+                                <p>Participez au développement d'applications mobiles innovantes utilisant les dernières technologies de développement cross-platform.</p>
+                                <div class="internship-tags">
+                                    <span class="tag">Flutter</span>
+                                    <span class="tag">Dart</span>
+                                    <span class="tag">Firebase</span>
+                                    <span class="tag">Mobile</span>
+                                </div>
+                            </div>
+                            <div class="card-footer favorite-actions">
+                                <span class="added-date">Ajouté le 12/03/2025</span>
+                                <div class="action-buttons">
+                                    <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Détails</a>
+                                    <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Postuler</a>
+                                    <button class="btn-icon btn-remove"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pagination">
+                    <a href="#" class="pagination-prev disabled"><i class="fas fa-chevron-left"></i></a>
+                    <a href="#" class="pagination-item active">1</a>
+                    <a href="#" class="pagination-item">2</a>
+                    <a href="#" class="pagination-next"><i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <!-- Aucun favori message (caché par défaut) -->
+                <div class="no-favorites hidden">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3>Vous n'avez pas encore de stage en favoris</h3>
+                        <p>Ajoutez des stages à vos favoris pour les retrouver facilement plus tard</p>
+                        <a href="#" class="btn btn-primary">Rechercher des stages</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="../../Asset/Js/scripts.js"></script>
+</body>
+</html>

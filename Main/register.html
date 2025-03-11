@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeBonPlan - Inscription</title>
+    <link rel="stylesheet" href="../Asset/Css/Style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<script src="../Asset/Js/scripts.js"></script>
+
+<header>
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <i class="fas fa-briefcase"></i>
+                LeBonPlan
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="stages.html">Stages</a></li>
+                <li><a href="entreprises.html">Entreprises</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-outline">Connexion</a>
+                <a href="register.html" class="btn btn-primary">Inscription</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-card register-card">
+                <div class="auth-header">
+                    <h2>Créer un compte</h2>
+                    <p>Rejoignez LeBonPlan pour découvrir des opportunités de stage adaptées à votre profil</p>
+                </div>
+                <div class="account-type-selector">
+                    <button class="account-type active" data-type="student">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>Étudiant</span>
+                    </button>
+                    <button class="account-type" data-type="company">
+                        <i class="fas fa-building"></i>
+                        <span>Entreprise</span>
+                    </button>
+                </div>
+                <form class="auth-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstname">Prénom</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="firstname" name="firstname" placeholder="Votre prénom" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastname">Nom</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="lastname" name="lastname" placeholder="Votre nom" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" name="email" placeholder="Votre adresse email" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="password">Mot de passe</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="password" name="password" placeholder="Votre mot de passe" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm-password">Confirmer</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirmer mot de passe" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="education">Niveau d'études</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                            <select id="education" name="education" required>
+                                <option value="" disabled selected>Sélectionnez votre niveau</option>
+                                <option value="bac">Bac</option>
+                                <option value="bac+1">Bac+1</option>
+                                <option value="bac+2">Bac+2</option>
+                                <option value="bac+3">Bac+3</option>
+                                <option value="bac+4">Bac+4</option>
+                                <option value="bac+5">Bac+5</option>
+                                <option value="bac+6">Bac+6 et plus</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="field">Domaine d'études</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-book"></i>
+                            <select id="field" name="field" required>
+                                <option value="" disabled selected>Sélectionnez votre domaine</option>
+                                <option value="informatique">Informatique</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="finance">Finance</option>
+                                <option value="rh">Ressources Humaines</option>
+                                <option value="communication">Communication</option>
+                                <option value="ingenierie">Ingénierie</option>
+                                <option value="science">Sciences</option>
+                                <option value="design">Design</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group terms">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <label for="terms">J'accepte les <a href="#">conditions d'utilisation</a> et la <a href="#">politique de confidentialité</a></label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Créer mon compte</button>
+                    <div class="social-login">
+                        <p>Ou inscrivez-vous avec</p>
+                        <div class="social-buttons">
+                            <button type="button" class="btn btn-social btn-google">
+                                <i class="fab fa-google"></i>
+                                Google
+                            </button>
+                            <button type="button" class="btn btn-social btn-linkedin">
+                                <i class="fab fa-linkedin-in"></i>
+                                LinkedIn
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class="auth-footer">
+                    <p>Vous avez déjà un compte? <a href="login.html">Connectez-vous</a></p>
+                </div>
+            </div>
+            <div class="auth-image">
+                <img src="/api/placeholder/600/800" alt="Inscription LeBonPlan">
+                <div class="auth-overlay">
+                    <h3>Lancez votre carrière professionnelle</h3>
+                    <p>Créez votre profil pour accéder à des milliers d'opportunités de stage dans toute la France.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>StageConnect</h3>
+                <p>La plateforme qui facilite la recherche de stages pour les étudiants et la recherche de talents pour les entreprises.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com/" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.linkedin.com/in/julian-kerignard-b9ab6a2bb/" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Liens utiles</h3>
+                <ul class="footer-links">
+                    <li><a href="#">À propos</a></li>
+                    <li><a href="#">Comment ça marche</a></li>
+                    <li><a href="MentionLegal.html">GCU</a></li>
+                    <li><a href="terms.html">Mention Légales</a></li>
+                    <li><a href="contact.html">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Candidats</h3>
+                <ul class="footer-links">
+                    <li><a href="stages.html">Parcourir les stages</a></li>
+                    <li><a href="#">Créer un profil</a></li>
+                    <li><a href="#">Conseils CV</a></li>
+                    <li><a href="#">Préparation entretien</a></li>
+                    <li><a href="#">Ressources</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 StageConnect. Tous droits réservés.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

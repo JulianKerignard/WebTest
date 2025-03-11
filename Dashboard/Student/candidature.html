@@ -1,0 +1,536 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeBonPlan - Mes Candidatures</title>
+    <link rel="stylesheet" href="../../Asset/Css/Style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="dashboard-body">
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="logo">
+                <i class="fas fa-briefcase"></i>
+                LeBonPlan
+            </a>
+            <button class="close-sidebar-btn" id="closeSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="/api/placeholder/100/100" alt="Photo de profil">
+            </div>
+            <div class="user-info">
+                <h3>Marie Dubois</h3>
+                <p>Étudiante en Informatique</p>
+                <span class="user-status">
+                    <i class="fas fa-circle"></i> En recherche de stage
+                </span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="dashboard.html"><i class="fas fa-home"></i> Tableau de bord</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-search"></i> Rechercher des stages</a>
+                </li>
+                <li class="active">
+                    <a href="#"><i class="fas fa-file-alt"></i> Mes candidatures</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-star"></i> Stages favoris</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-bell"></i> Notifications</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-user"></i> Mon profil</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-cog"></i> Paramètres</a>
+                </li>
+                <li class="sidebar-divider"></li>
+                <li>
+                    <a href="#"><i class="fas fa-question-circle"></i> Aide</a>
+                </li>
+                <li>
+                    <a href="index.html"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="header-search">
+                <div class="input-with-icon">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Rechercher une candidature...">
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="notification-badge">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="message-badge">
+                    <i class="fas fa-envelope"></i>
+                    <span class="badge">5</span>
+                </div>
+                <div class="user-dropdown">
+                    <img src="/api/placeholder/40/40" alt="Photo de profil">
+                    <span>Marie Dubois</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="page-title">
+                <h1>Mes Candidatures</h1>
+                <p>Suivez l'état de toutes vos candidatures aux offres de stage</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>12</h3>
+                        <p>Candidatures envoyées</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>5</h3>
+                        <p>En cours d'examen</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>3</h3>
+                        <p>Entretiens prévus</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>1</h3>
+                        <p>Offres acceptées</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres pour les candidatures -->
+            <div class="dashboard-card filter-controls">
+                <div class="filter-header">
+                    <h2>Filtrer mes candidatures</h2>
+                </div>
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label>Statut</label>
+                        <select id="statusFilter">
+                            <option value="all">Tous les statuts</option>
+                            <option value="pending">En attente</option>
+                            <option value="in-review">En cours d'examen</option>
+                            <option value="interview">Entretien prévu</option>
+                            <option value="accepted">Acceptée</option>
+                            <option value="rejected">Refusée</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Période</label>
+                        <select id="periodFilter">
+                            <option value="all">Toutes les périodes</option>
+                            <option value="week">Cette semaine</option>
+                            <option value="month">Ce mois-ci</option>
+                            <option value="3months">3 derniers mois</option>
+                            <option value="6months">6 derniers mois</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Trier par</label>
+                        <select id="sortFilter">
+                            <option value="date-desc">Date (plus récent)</option>
+                            <option value="date-asc">Date (plus ancien)</option>
+                            <option value="company">Entreprise (A-Z)</option>
+                            <option value="status">Statut</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-primary btn-sm">Appliquer</button>
+                        <button class="btn btn-outline btn-sm">Réinitialiser</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des candidatures -->
+            <div class="dashboard-card">
+                <div class="card-header-alt">
+                    <h2>Toutes mes candidatures (12)</h2>
+                    <div class="card-actions">
+                        <div class="view-options">
+                            <button class="view-btn active" data-view="detailed"><i class="fas fa-th-list"></i></button>
+                            <button class="view-btn" data-view="compact"><i class="fas fa-list"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mode d'affichage détaillé -->
+                <div class="applications-detailed">
+                    <!-- Candidature 1 -->
+                    <div class="application-detailed-item">
+                        <div class="application-header">
+                            <div class="company-logo-sm">TD</div>
+                            <div class="application-title">
+                                <h3>Stage Marketing Digital</h3>
+                                <p>TechDream - Lyon</p>
+                            </div>
+                            <div class="application-status interview">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Entretien prévu</span>
+                            </div>
+                        </div>
+                        <div class="application-content">
+                            <div class="application-details">
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-calendar-alt"></i> Candidature envoyée le:</span>
+                                    <span class="detail-value">12 mars 2025</span>
+                                </div>
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-clock"></i> Dernier changement de statut:</span>
+                                    <span class="detail-value">22 mars 2025</span>
+                                </div>
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-calendar-check"></i> Date de l'entretien:</span>
+                                    <span class="detail-value">5 avril 2025</span>
+                                </div>
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-map-marker-alt"></i> Type d'entretien:</span>
+                                    <span class="detail-value">Visioconférence</span>
+                                </div>
+                            </div>
+                            <div class="application-timeline">
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Candidature envoyée</h4>
+                                        <p>12 mars 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Candidature consultée</h4>
+                                        <p>15 mars 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-phone-alt"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Entretien planifié</h4>
+                                        <p>22 mars 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item current">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-video"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Entretien</h4>
+                                        <p>5 avril 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Décision finale</h4>
+                                        <p>À déterminer</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="application-actions">
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Voir l'offre</a>
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-file-alt"></i> Ma lettre de motivation</a>
+                                <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-calendar-alt"></i> Détails de l'entretien</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Candidature 2 -->
+                    <div class="application-detailed-item">
+                        <div class="application-header">
+                            <div class="company-logo-sm">AB</div>
+                            <div class="application-title">
+                                <h3>Développeur Full Stack</h3>
+                                <p>Acme Branding - Paris</p>
+                            </div>
+                            <div class="application-status in-review">
+                                <i class="fas fa-search"></i>
+                                <span>En cours d'examen</span>
+                            </div>
+                        </div>
+                        <div class="application-content">
+                            <div class="application-details">
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-calendar-alt"></i> Candidature envoyée le:</span>
+                                    <span class="detail-value">10 mars 2025</span>
+                                </div>
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-clock"></i> Dernier changement de statut:</span>
+                                    <span class="detail-value">15 mars 2025</span>
+                                </div>
+                            </div>
+                            <div class="application-timeline">
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Candidature envoyée</h4>
+                                        <p>10 mars 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Candidature consultée</h4>
+                                        <p>15 mars 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item current">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Analyse de candidature</h4>
+                                        <p>En cours</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-phone-alt"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Entretien</h4>
+                                        <p>À déterminer</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Décision finale</h4>
+                                        <p>À déterminer</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="application-actions">
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Voir l'offre</a>
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-file-alt"></i> Ma lettre de motivation</a>
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-envelope"></i> Contacter le recruteur</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Candidature 3 -->
+                    <div class="application-detailed-item">
+                        <div class="application-header">
+                            <div class="company-logo-sm">GS</div>
+                            <div class="application-title">
+                                <h3>Data Analyst</h3>
+                                <p>Green Solutions - Bordeaux</p>
+                            </div>
+                            <div class="application-status pending">
+                                <i class="fas fa-clock"></i>
+                                <span>En attente</span>
+                            </div>
+                        </div>
+                        <div class="application-content">
+                            <div class="application-details">
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-calendar-alt"></i> Candidature envoyée le:</span>
+                                    <span class="detail-value">24 mars 2025</span>
+                                </div>
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-clock"></i> Temps écoulé:</span>
+                                    <span class="detail-value">2 jours</span>
+                                </div>
+                            </div>
+                            <div class="application-timeline">
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Candidature envoyée</h4>
+                                        <p>24 mars 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item current">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Consultation de candidature</h4>
+                                        <p>En attente</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Analyse de candidature</h4>
+                                        <p>À venir</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-phone-alt"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Entretien</h4>
+                                        <p>À déterminer</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Décision finale</h4>
+                                        <p>À déterminer</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="application-actions">
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Voir l'offre</a>
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-file-alt"></i> Ma lettre de motivation</a>
+                                <a href="#" class="btn btn-danger btn-sm"><i class="fas fa-times-circle"></i> Annuler ma candidature</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Candidature 4 -->
+                    <div class="application-detailed-item">
+                        <div class="application-header">
+                            <div class="company-logo-sm">CI</div>
+                            <div class="application-title">
+                                <h3>UX/UI Designer</h3>
+                                <p>Creative Impulse - Nantes</p>
+                            </div>
+                            <div class="application-status rejected">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Refusée</span>
+                            </div>
+                        </div>
+                        <div class="application-content">
+                            <div class="application-details">
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-calendar-alt"></i> Candidature envoyée le:</span>
+                                    <span class="detail-value">28 février 2025</span>
+                                </div>
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-clock"></i> Décision reçue le:</span>
+                                    <span class="detail-value">15 mars 2025</span>
+                                </div>
+                                <div class="detail-group">
+                                    <span class="detail-label"><i class="fas fa-comment"></i> Feedback du recruteur:</span>
+                                    <span class="detail-value">Profil intéressant mais expérience insuffisante. Encourageons à postuler plus tard.</span>
+                                </div>
+                            </div>
+                            <div class="application-timeline">
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Candidature envoyée</h4>
+                                        <p>28 février 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Candidature consultée</h4>
+                                        <p>5 mars 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Analyse de candidature</h4>
+                                        <p>10 mars 2025</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item completed rejected">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-times-circle"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h4>Candidature non retenue</h4>
+                                        <p>15 mars 2025</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="application-actions">
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> Voir l'offre</a>
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-file-alt"></i> Ma lettre de motivation</a>
+                                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-search"></i> Offres similaires</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pagination">
+                    <a href="#" class="pagination-prev disabled"><i class="fas fa-chevron-left"></i></a>
+                    <a href="#" class="pagination-item active">1</a>
+                    <a href="#" class="pagination-item">2</a>
+                    <a href="#" class="pagination-item">3</a>
+                    <a href="#" class="pagination-next"><i class="fas fa-chevron-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="../../Asset/Js/scripts.js"></script>
+</body>
+</html>

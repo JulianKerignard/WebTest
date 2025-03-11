@@ -1,0 +1,215 @@
+﻿/* _auth.css */
+.auth-section {
+    padding: var(--spacing-xxl) 0;
+    background-color: var(--color-background);
+}
+
+.auth-container {
+    display: flex;
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: var(--color-white);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.auth-card {
+    flex: 1;
+    padding: var(--spacing-xl);
+}
+
+.auth-image {
+    display: none;
+    flex: 1;
+    position: relative;
+}
+
+.auth-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.auth-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--spacing-lg);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    color: var(--color-white);
+}
+
+.auth-overlay h3 {
+    font-size: var(--font-size-xlarge);
+    margin-bottom: var(--spacing-sm);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.auth-header h2 {
+    font-size: var(--font-size-xxlarge);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.auth-header p {
+    color: var(--color-text-light);
+}
+
+.auth-form {
+    margin-bottom: var(--spacing-md);
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.forgot-password {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: var(--font-size-small);
+    transition: color var(--transition-fast);
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.social-login {
+    margin-top: var(--spacing-lg);
+    text-align: center;
+}
+
+.social-login p {
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-md);
+    position: relative;
+}
+
+.social-login p::before,
+.social-login p::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background-color: var(--color-border);
+}
+
+.social-login p::before {
+    left: 0;
+}
+
+.social-login p::after {
+    right: 0;
+}
+
+.social-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: var(--spacing-md);
+    color: var(--color-text-light);
+}
+
+.auth-footer a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+    transition: color var(--transition-fast);
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.terms {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+}
+
+.terms label {
+    font-size: var(--font-size-small);
+    line-height: 1.4;
+}
+
+.terms a {
+    color: var(--color-primary);
+}
+
+.account-type-selector {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.account-type {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.account-type i {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text-light);
+}
+
+.account-type.active {
+    border-color: var(--color-primary);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.account-type.active i,
+.account-type.active span {
+    color: var(--color-primary);
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+    .auth-image {
+        display: block;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .auth-container {
+        flex-direction: column;
+        max-width: 500px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .social-buttons {
+        flex-direction: column;
+    }
+}

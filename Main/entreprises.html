@@ -1,0 +1,642 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeBonPlan - Découvrir les entreprises</title>
+    <link rel="stylesheet" href="../Asset/Css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<script src="../Asset/Js/scripts.js"></script>
+<header>
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <i class="fas fa-briefcase"></i>
+                LeBonPlan
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="stages.html">Stages</a></li>
+                <li class="active"><a href="entreprises.html">Entreprises</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-outline">Connexion</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="entreprises-hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Découvrez les entreprises qui recrutent</h1>
+            <p>Explorez les profils des entreprises proposant des stages dans votre domaine et trouvez votre futur employeur.</p>
+            <div class="search-bar simple">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Rechercher une entreprise par nom, secteur ou localisation">
+                </div>
+                <button type="submit" class="btn btn-primary">Rechercher</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="entreprises-filter">
+    <div class="container">
+        <div class="filter-container">
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label>Secteur d'activité</label>
+                    <select>
+                        <option value="">Tous les secteurs</option>
+                        <option value="tech">Technologie & IT</option>
+                        <option value="finance">Finance & Banque</option>
+                        <option value="sante">Santé & Pharma</option>
+                        <option value="media">Médias & Communication</option>
+                        <option value="conseil">Conseil</option>
+                        <option value="industrie">Industrie & Ingénierie</option>
+                        <option value="commerce">Commerce & Distribution</option>
+                        <option value="transport">Transport & Logistique</option>
+                        <option value="energie">Énergie & Environnement</option>
+                        <option value="public">Secteur Public</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Localisation</label>
+                    <select>
+                        <option value="">Toutes les localisations</option>
+                        <option value="paris">Paris</option>
+                        <option value="lyon">Lyon</option>
+                        <option value="marseille">Marseille</option>
+                        <option value="bordeaux">Bordeaux</option>
+                        <option value="lille">Lille</option>
+                        <option value="toulouse">Toulouse</option>
+                        <option value="nantes">Nantes</option>
+                        <option value="strasbourg">Strasbourg</option>
+                        <option value="montpellier">Montpellier</option>
+                        <option value="multiple">Plusieurs localisations</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Taille de l'entreprise</label>
+                    <select>
+                        <option value="">Toutes tailles</option>
+                        <option value="startup">Startup (1-50)</option>
+                        <option value="pme">PME (51-250)</option>
+                        <option value="eti">ETI (251-5000)</option>
+                        <option value="grande">Grande entreprise (5000+)</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Note des stagiaires</label>
+                    <select>
+                        <option value="">Toutes les notes</option>
+                        <option value="4.5">4.5★ et plus</option>
+                        <option value="4">4★ et plus</option>
+                        <option value="3.5">3.5★ et plus</option>
+                        <option value="3">3★ et plus</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <div class="sort-options">
+                    <span>Trier par :</span>
+                    <select id="sortSelect">
+                        <option value="pertinence">Pertinence</option>
+                        <option value="note">Meilleures notes</option>
+                        <option value="offres">Nombre d'offres</option>
+                        <option value="az">Ordre alphabétique</option>
+                    </select>
+                </div>
+                <div class="view-options">
+                    <button class="view-btn active" data-view="grid">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="view-btn" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="entreprises-results">
+    <div class="container">
+        <div class="results-info">
+            <p><strong>128 entreprises</strong> correspondent à votre recherche</p>
+        </div>
+
+        <div class="entreprises-grid">
+            <!-- Entreprise 1 -->
+            <div class="entreprise-card">
+                <div class="card-header">
+                    <div class="entreprise-logo">
+                        <img src="img\entreprises\TechDream.png" alt="TechDream Logo">
+                    </div>
+                    <div class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="entreprise-name">TechDream</h3>
+                    <div class="entreprise-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="rating-score">4.5</span>
+                        <span class="rating-count">(42 avis)</span>
+                    </div>
+                    <div class="entreprise-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Lyon, France</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Technologie & IT</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>50-200 employés</span>
+                        </div>
+                    </div>
+                    <p class="entreprise-description">Startup innovante spécialisée dans le développement d'applications mobiles et de solutions cloud pour les entreprises.</p>
+                    <div class="entreprise-tags">
+                        <span class="tag">Applications mobiles</span>
+                        <span class="tag">Cloud</span>
+                        <span class="tag">IA</span>
+                        <span class="tag">UX/UI</span>
+                    </div>
+                    <div class="stage-count">
+                        <span><strong>8 stages</strong> disponibles</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline btn-sm">Voir le profil</a>
+                    <a href="#" class="btn btn-primary btn-sm">Voir les offres</a>
+                </div>
+            </div>
+
+            <!-- Entreprise 2 -->
+            <div class="entreprise-card">
+                <div class="card-header">
+                    <div class="entreprise-logo">
+                        <img src="img\entreprises\GreenSolution.png" alt="Green Solutions Logo">
+                    </div>
+                    <div class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="entreprise-name">Green Solutions</h3>
+                    <div class="entreprise-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="rating-score">4.0</span>
+                        <span class="rating-count">(36 avis)</span>
+                    </div>
+                    <div class="entreprise-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Bordeaux, France</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Énergie & Environnement</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>200-500 employés</span>
+                        </div>
+                    </div>
+                    <p class="entreprise-description">Entreprise leader dans le développement de solutions écologiques et durables pour la transition énergétique.</p>
+                    <div class="entreprise-tags">
+                        <span class="tag">Énergies renouvelables</span>
+                        <span class="tag">Développement durable</span>
+                        <span class="tag">Analyse de données</span>
+                    </div>
+                    <div class="stage-count">
+                        <span><strong>5 stages</strong> disponibles</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline btn-sm">Voir le profil</a>
+                    <a href="#" class="btn btn-primary btn-sm">Voir les offres</a>
+                </div>
+            </div>
+
+            <!-- Entreprise 3 -->
+            <div class="entreprise-card">
+                <div class="card-header">
+                    <div class="entreprise-logo">
+                        <img src="img\entreprises\FinanceBank.png" alt="Finance Bank Logo">
+                    </div>
+                    <div class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="entreprise-name">Finance Bank</h3>
+                    <div class="entreprise-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="rating-score">4.8</span>
+                        <span class="rating-count">(65 avis)</span>
+                    </div>
+                    <div class="entreprise-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Paris, France</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Finance & Banque</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>1000+ employés</span>
+                        </div>
+                    </div>
+                    <p class="entreprise-description">Institution financière offrant des services bancaires et d'investissement aux particuliers et aux entreprises.</p>
+                    <div class="entreprise-tags">
+                        <span class="tag">Finance</span>
+                        <span class="tag">Investissement</span>
+                        <span class="tag">Gestion de risques</span>
+                        <span class="tag">Technologie bancaire</span>
+                    </div>
+                    <div class="stage-count">
+                        <span><strong>12 stages</strong> disponibles</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline btn-sm">Voir le profil</a>
+                    <a href="#" class="btn btn-primary btn-sm">Voir les offres</a>
+                </div>
+            </div>
+
+            <!-- Entreprise 4 -->
+            <div class="entreprise-card">
+                <div class="card-header">
+                    <div class="entreprise-logo">
+                        <img src="img\entreprises\CreativeImpulse.png" alt="Creative Impulse Logo">
+                    </div>
+                    <div class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="entreprise-name">Creative Impulse</h3>
+                    <div class="entreprise-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="rating-score">3.5</span>
+                        <span class="rating-count">(28 avis)</span>
+                    </div>
+                    <div class="entreprise-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Nantes, France</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Médias & Communication</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>20-50 employés</span>
+                        </div>
+                    </div>
+                    <p class="entreprise-description">Agence créative spécialisée dans le design graphique, le marketing digital et le développement de marques.</p>
+                    <div class="entreprise-tags">
+                        <span class="tag">Design</span>
+                        <span class="tag">Marketing Digital</span>
+                        <span class="tag">Branding</span>
+                        <span class="tag">Social Media</span>
+                    </div>
+                    <div class="stage-count">
+                        <span><strong>4 stages</strong> disponibles</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline btn-sm">Voir le profil</a>
+                    <a href="#" class="btn btn-primary btn-sm">Voir les offres</a>
+                </div>
+            </div>
+
+            <!-- Entreprise 5 -->
+            <div class="entreprise-card">
+                <div class="card-header">
+                    <div class="entreprise-logo">
+                        <img src="img\entreprises\DataSphere.png" alt="DataSphere Logo">
+                    </div>
+                    <div class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="entreprise-name">DataSphere</h3>
+                    <div class="entreprise-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="rating-score">4.2</span>
+                        <span class="rating-count">(45 avis)</span>
+                    </div>
+                    <div class="entreprise-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Toulouse, France</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Technologie & IT</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>100-200 employés</span>
+                        </div>
+                    </div>
+                    <p class="entreprise-description">Entreprise spécialisée dans l'analyse de données massives et le développement de solutions d'intelligence artificielle.</p>
+                    <div class="entreprise-tags">
+                        <span class="tag">Big Data</span>
+                        <span class="tag">Machine Learning</span>
+                        <span class="tag">Cloud Computing</span>
+                        <span class="tag">IoT</span>
+                    </div>
+                    <div class="stage-count">
+                        <span><strong>7 stages</strong> disponibles</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline btn-sm">Voir le profil</a>
+                    <a href="#" class="btn btn-primary btn-sm">Voir les offres</a>
+                </div>
+            </div>
+
+            <!-- Entreprise 6 -->
+            <div class="entreprise-card">
+                <div class="card-header">
+                    <div class="entreprise-logo">
+                        <img src="img\entreprises\NextCloud.png" alt="NextCloud Logo">
+                    </div>
+                    <div class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="entreprise-name">NextCloud</h3>
+                    <div class="entreprise-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="rating-score">4.6</span>
+                        <span class="rating-count">(38 avis)</span>
+                    </div>
+                    <div class="entreprise-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Paris, France</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Technologie & IT</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>50-100 employés</span>
+                        </div>
+                    </div>
+                    <p class="entreprise-description">Entreprise innovante dans le domaine du cloud computing et des services web pour les entreprises.</p>
+                    <div class="entreprise-tags">
+                        <span class="tag">Cloud</span>
+                        <span class="tag">DevOps</span>
+                        <span class="tag">Cybersécurité</span>
+                        <span class="tag">Backend</span>
+                    </div>
+                    <div class="stage-count">
+                        <span><strong>6 stages</strong> disponibles</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline btn-sm">Voir le profil</a>
+                    <a href="#" class="btn btn-primary btn-sm">Voir les offres</a>
+                </div>
+            </div>
+
+            <!-- Entreprise 7 -->
+            <div class="entreprise-card">
+                <div class="card-header">
+                    <div class="entreprise-logo">
+                        <img src="img\entreprises\AcmeBranding.png" alt="Acme Branding Logo">
+                    </div>
+                    <div class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="entreprise-name">Acme Branding</h3>
+                    <div class="entreprise-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="rating-score">4.0</span>
+                        <span class="rating-count">(22 avis)</span>
+                    </div>
+                    <div class="entreprise-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Paris, France</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Médias & Communication</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>20-50 employés</span>
+                        </div>
+                    </div>
+                    <p class="entreprise-description">Agence intégrée offrant des services de branding, marketing et développement web pour les marques.</p>
+                    <div class="entreprise-tags">
+                        <span class="tag">E-commerce</span>
+                        <span class="tag">Développement web</span>
+                        <span class="tag">Marketing</span>
+                        <span class="tag">UX/UI</span>
+                    </div>
+                    <div class="stage-count">
+                        <span><strong>3 stages</strong> disponibles</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline btn-sm">Voir le profil</a>
+                    <a href="#" class="btn btn-primary btn-sm">Voir les offres</a>
+                </div>
+            </div>
+
+            <div class="entreprise-card">
+                <div class="card-header">
+                    <div class="entreprise-logo">
+                        <img src="img\entreprises\Innosoft.png" alt="InnoSoft Logo">
+                    </div>
+                    <div class="favorite-btn">
+                        <i class="far fa-heart"></i>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 class="entreprise-name">InnoSoft</h3>
+                    <div class="entreprise-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                        <span class="rating-score">4.1</span>
+                        <span class="rating-count">(31 avis)</span>
+                    </div>
+                    <div class="entreprise-info">
+                        <div class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Lyon, France</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Technologie & IT</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span>50-100 employés</span>
+                        </div>
+                    </div>
+                    <p class="entreprise-description">Entreprise spécialisée dans le développement de logiciels sur mesure et solutions web pour les PME.</p>
+                    <div class="entreprise-tags">
+                        <span class="tag">JavaScript</span>
+                        <span class="tag">React</span>
+                        <span class="tag">Node.js</span>
+                        <span class="tag">Frontend</span>
+                    </div>
+                    <div class="stage-count">
+                        <span><strong>5 stages</strong> disponibles</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="#" class="btn btn-outline btn-sm">Voir le profil</a>
+                    <a href="#" class="btn btn-primary btn-sm">Voir les offres</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination">
+            <a href="#" class="pagination-prev disabled"><i class="fas fa-chevron-left"></i></a>
+            <a href="#" class="pagination-item active">1</a>
+            <a href="#" class="pagination-item">2</a>
+            <a href="#" class="pagination-item">3</a>
+            <a href="#" class="pagination-item">4</a>
+            <span class="pagination-more">...</span>
+            <a href="#" class="pagination-item">16</a>
+            <a href="#" class="pagination-next"><i class="fas fa-chevron-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="entreprise-bottom-cta">
+    <div class="container">
+        <div class="cta-cards">
+            <div class="cta-card">
+                <div class="cta-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h3>Vous êtes une entreprise ?</h3>
+                <p>Publiez gratuitement vos offres de stage et trouvez les talents de demain pour rejoindre vos équipes.</p>
+                <a href="register.html" class="btn btn-primary">Publier une offre</a>
+            </div>
+            <div class="cta-card">
+                <div class="cta-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3>Restez informé</h3>
+                <p>Créez des alertes pour recevoir les nouvelles offres de stage des entreprises qui vous intéressent.</p>
+                <a href="#" class="btn btn-outline">Créer une alerte</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>LeBonPlan</h3>
+                <p>La plateforme qui facilite la recherche de stages pour les étudiants et la recherche de talents pour les entreprises.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com/" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.linkedin.com/in/julian-kerignard-b9ab6a2bb/" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Liens utiles</h3>
+                <ul class="footer-links">
+                    <li><a href="#">À propos</a></li>
+                    <li><a href="MentionLegal.html">GCU</a></li>
+                    <li><a href="terms.html">Mention Légales</a></li>
+                    <li><a href="contact.html">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Candidats</h3>
+                <ul class="footer-links">
+                    <li><a href="stages.html">Parcourir les stages</a></li>
+                    <li><a href="entreprises.html">Parcourir les entreprises</a></li>
+                    <li><a href="login.html">Se Connecter</a></li>
+                    <li><a href="../Dashboard/Student/studentDashboard.html">Dashboard Etudiant</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 LeBonPlan. Tous droits réservés.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

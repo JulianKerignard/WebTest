@@ -1,0 +1,237 @@
+﻿/* _candidatures.css */
+/* Filtres pour les candidatures */
+.filter-controls {
+    margin-bottom: var(--spacing-lg);
+}
+
+.filter-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.filter-header h2 {
+    margin: 0;
+    font-size: var(--font-size-large);
+}
+
+.filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+    align-items: flex-end;
+}
+
+.filter-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+/* Affichage détaillé des candidatures */
+.applications-detailed {
+    padding: 0;
+}
+
+.application-detailed-item {
+    border-bottom: 1px solid var(--color-border);
+    transition: var(--transition-fast);
+}
+
+.application-detailed-item:hover {
+    background-color: #f9f9f9;
+}
+
+.application-detailed-item:last-child {
+    border-bottom: none;
+}
+
+.application-header {
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.application-header::after {
+    content: "\f078";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    right: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-light);
+    transition: transform var(--transition-fast);
+}
+
+.application-detailed-item.active .application-header::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.application-title {
+    flex: 1;
+    margin-left: var(--spacing-sm);
+}
+
+.application-title h3 {
+    margin: 0 0 5px 0;
+    font-size: var(--font-size-large);
+}
+
+.application-title p {
+    margin: 0;
+    color: var(--color-text-light);
+    font-size: var(--font-size-small);
+}
+
+.application-content {
+    padding: 0 var(--spacing-md) var(--spacing-md) var(--spacing-xxl);
+    display: none;
+}
+
+.application-detailed-item.active .application-content {
+    display: block;
+    animation: fadeIn var(--transition-fast);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.application-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm);
+    background-color: #f5f7fa;
+    border-radius: var(--border-radius-md);
+}
+
+.detail-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.detail-label {
+    color: var(--color-text-light);
+    font-size: var(--font-size-xsmall);
+}
+
+.detail-label i {
+    margin-right: 5px;
+}
+
+.detail-value {
+    font-size: var(--font-size-small);
+}
+
+/* Timeline de candidature */
+.application-timeline {
+    margin: var(--spacing-md) 0;
+    position: relative;
+    padding-left: 30px;
+}
+
+.application-timeline::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background-color: var(--color-border);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: var(--spacing-md);
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -30px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    border: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: var(--color-text-light);
+    z-index: 1;
+}
+
+.timeline-item.completed .timeline-icon {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.timeline-item.current .timeline-icon {
+    background-color: var(--color-white);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.timeline-item.rejected .timeline-icon {
+    background-color: var(--color-danger);
+    border-color: var(--color-danger);
+    color: var(--color-white);
+}
+
+.timeline-content {
+    padding-left: var(--spacing-sm);
+}
+
+.timeline-content h4 {
+    margin: 0 0 5px 0;
+    font-size: var(--font-size-small);
+}
+
+.timeline-content p {
+    margin: 0;
+    font-size: var(--font-size-xsmall);
+    color: var(--color-text-light);
+}
+
+/* Actions de candidature */
+.application-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-md);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filters-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .application-details {
+        grid-template-columns: 1fr;
+    }
+
+    .application-actions {
+        flex-direction: column;
+    }
+
+    .application-actions .btn {
+        width: 100%;
+    }
+
+    .application-content {
+        padding-left: var(--spacing-md);
+    }
+}

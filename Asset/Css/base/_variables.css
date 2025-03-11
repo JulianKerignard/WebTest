@@ -1,0 +1,67 @@
+﻿/* _variables.css */
+:root {
+    /* Couleurs principales */
+    --color-primary: #4361ee;
+    --color-primary-dark: #3f37c9;
+    --color-secondary: #f72585;
+    --color-accent: #4cc9f0;
+
+    /* Couleurs neutres */
+    --color-background: #f8f9fa;
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-text: #333333;
+    --color-text-light: #6c757d;
+    --color-border: #e0e0e0;
+
+    /* Couleurs sémantiques */
+    --color-success: #4bb543;
+    --color-warning: #ffc107;
+    --color-danger: #dc3545;
+    --color-info: #0dcaf0;
+
+    /* Typographie */
+    --font-primary: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-secondary: 'Arial', sans-serif;
+    --font-size-base: 1rem;
+    --font-size-small: 0.875rem;
+    --font-size-xsmall: 0.75rem;
+    --font-size-large: 1.125rem;
+    --font-size-xlarge: 1.25rem;
+    --font-size-xxlarge: 1.5rem;
+    --font-size-display: 2rem;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+
+    /* Espacement */
+    --spacing-xxs: 0.25rem;
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+
+    /* Bordures */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-full: 999px;
+
+    /* Ombres */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+
+    /* Transitions */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+
+    /* Breakpoints */
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+}

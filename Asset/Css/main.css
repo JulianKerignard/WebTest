@@ -1,0 +1,32 @@
+﻿/* main.css */
+
+/* Base */
+@import 'base/_reset.css';
+@import 'base/_variables.css';
+@import 'base/_typography.css';
+@import 'base/_utilities.css';
+
+/* Layout */
+@import 'layout/_container.css';
+@import 'layout/_header.css';
+@import 'layout/_footer.css';
+@import 'layout/_grid.css';
+@import 'layout/_forms.css';
+
+/* Components */
+@import 'components/_buttons.css';
+@import 'components/_cards.css';
+@import 'components/_navbar.css';
+@import 'components/_search.css';
+@import 'components/_pagination.css';
+@import 'components/_modals.css';
+@import 'components/_notifications.css';
+@import 'components/_tags.css';
+
+/* Pages */
+@import 'pages/_home.css';
+@import 'pages/_auth.css';
+@import 'pages/_dashboard.css';
+@import 'pages/_stages.css';
+@import 'pages/_entreprises.css';
+@import 'pages/_contact.css';

@@ -1,0 +1,147 @@
+﻿/* _stages.css */
+/* Search Section */
+.search-section {
+    background-color: var(--color-background);
+    padding: var(--spacing-lg) 0;
+}
+
+.search-container {
+    background-color: var(--color-white);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* Filters panel */
+.filters-panel {
+    background-color: var(--color-white);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-lg) 0;
+    display: none;
+}
+
+.filters-panel.active {
+    display: block;
+}
+
+.filters-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+}
+
+.filters-column {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group-title h3 {
+    font-size: var(--font-size-large);
+    margin-bottom: var(--spacing-md);
+    position: relative;
+}
+
+.filter-group-title h3::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background-color: var(--color-secondary);
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-small);
+}
+
+.filter-checkbox input[type="checkbox"],
+.filter-checkbox input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.skills-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    flex-direction: row;
+}
+
+.skill-tag {
+    padding: 6px 12px;
+    background-color: var(--color-background);
+    border-radius: 20px;
+    font-size: var(--font-size-xsmall);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.skill-tag:hover {
+    background-color: #dee2e6;
+}
+
+.skill-tag.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.filters-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+}
+
+/* Internship results */
+.internships-results {
+    padding: var(--spacing-xl) 0;
+}
+
+/* Newsletter for search */
+.search-newsletter {
+    background-color: #f8f9fa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .search-filters {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .filter-group {
+        min-width: 100%;
+    }
+
+    .advanced-filters {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        align-items: flex-start;
+    }
+
+    .sort-options {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .view-options {
+        align-self: flex-end;
+    }
+
+    .filters-content {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+}

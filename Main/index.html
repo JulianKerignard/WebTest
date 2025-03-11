@@ -1,0 +1,400 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeBonPlan - Trouvez votre stage idéal</title>
+    <link rel="stylesheet" href="../Asset/Css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<script src="../Asset/Js/scripts.js"></script>
+<header>
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <i class="fas fa-briefcase"></i>
+                LeBonPlan
+            </a>
+            <ul class="nav-menu">
+                <li class="active"><a href="index.html">Accueil</a></li>
+                <li><a href="stages.html">Stages</a></li>
+                <li><a href="entreprises.html">Entreprises</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-outline">Connexion</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container">
+        <h1>Trouvez le stage qui lance votre carrière</h1>
+        <p>Des milliers d'opportunités de stage dans des entreprises innovantes à travers la France. Démarrez votre parcours professionnel dès aujourd'hui.</p>
+        <div class="search-bar">
+            <input type="text" placeholder="Titre, mot-clé ou entreprise">
+            <select>
+                <option value="">Tous les domaines</option>
+                <option value="tech">Technologie</option>
+                <option value="marketing">Marketing</option>
+                <option value="finance">Finance</option>
+                <option value="sante">Santé</option>
+                <option value="education">Éducation</option>
+            </select>
+            <select>
+                <option value="">Toutes les villes</option>
+                <option value="paris">Paris</option>
+                <option value="lyon">Lyon</option>
+                <option value="marseille">Marseille</option>
+                <option value="bordeaux">Bordeaux</option>
+                <option value="toulouse">Toulouse</option>
+            </select>
+            <a href="stages.html" class="btn btn-accent">Rechercher</a>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <h2 class="section-title">Pourquoi LeBonPlan ?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>Recherche avancée</h3>
+                <p>Trouvez rapidement le stage parfait grâce à nos filtres de recherche personnalisés par secteur, durée et localisation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h3>Entreprises de qualité</h3>
+                <p>Accédez à des offres de stage dans des entreprises réputées, startups innovantes et organisations qui valorisent leurs stagiaires.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3>CV optimisé</h3>
+                <p>Créez un profil attractif et un CV moderne pour augmenter vos chances d'être remarqué par les recruteurs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3>Alertes personnalisées</h3>
+                <p>Recevez des notifications en temps réel pour les nouveaux stages correspondant à vos critères et préférences.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="internships">
+    <div class="container">
+        <div class="internships-header">
+            <h2 class="section-title">Stages populaires</h2>
+            <div class="filter-options">
+                <button class="filter-button active">Tous</button>
+                <button class="filter-button">Tech</button>
+                <button class="filter-button">Marketing</button>
+                <button class="filter-button">Finance</button>
+                <button class="filter-button">Design</button>
+            </div>
+        </div>
+        <div class="internship-grid">
+            <!-- Annonce de stage 1 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">AB</div>
+                    <div class="card-title">
+                        <h3>Développeur Full Stack</h3>
+                        <div class="company-name">Acme Branding</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Paris, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">800-1000€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">6 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+4/5</span>
+                        </div>
+                    </div>
+                    <p>Stage au sein d'une équipe de développeurs pour participer à la création de nouvelles fonctionnalités sur notre plateforme e-commerce.</p>
+                    <div class="internship-tags">
+                        <span class="tag">React</span>
+                        <span class="tag">Node.js</span>
+                        <span class="tag">MongoDB</span>
+                        <span class="tag">Agile</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 2 jours</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 2 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">TD</div>
+                    <div class="card-title">
+                        <h3>Marketing Digital</h3>
+                        <div class="company-name">TechDream</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Lyon, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">700€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">4 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+3/4</span>
+                        </div>
+                    </div>
+                    <p>Rejoignez notre équipe marketing pour développer des campagnes digitales innovantes et analyser leur performance.</p>
+                    <div class="internship-tags">
+                        <span class="tag">SEO</span>
+                        <span class="tag">Google Ads</span>
+                        <span class="tag">Social Media</span>
+                        <span class="tag">Analytics</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 1 semaine</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 3 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">GS</div>
+                    <div class="card-title">
+                        <h3>Data Analyst</h3>
+                        <div class="company-name">Green Solutions</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Bordeaux, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">900€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">6 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+5</span>
+                        </div>
+                    </div>
+                    <p>Stage en analyse de données environnementales pour aider à l'optimisation de nos processus écologiques et à la prise de décision.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Python</span>
+                        <span class="tag">R</span>
+                        <span class="tag">SQL</span>
+                        <span class="tag">Tableau</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 3 jours</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 4 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">CI</div>
+                    <div class="card-title">
+                        <h3>UX/UI Designer</h3>
+                        <div class="company-name">Creative Impulse</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Nantes, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">750€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">5 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+3/4</span>
+                        </div>
+                    </div>
+                    <p>Participez à la conception d'interfaces utilisateur intuitives et esthétiques pour nos applications mobiles et web.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Figma</span>
+                        <span class="tag">Adobe XD</span>
+                        <span class="tag">Sketch</span>
+                        <span class="tag">Prototype</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 5 jours</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 5 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">FB</div>
+                    <div class="card-title">
+                        <h3>Analyste Financier</h3>
+                        <div class="company-name">Finance Bank</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Paris, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">1000€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">6 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+4/5</span>
+                        </div>
+                    </div>
+                    <p>Stage au sein de notre département financier pour participer à l'analyse des risques et à la gestion de portefeuille.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Finance</span>
+                        <span class="tag">Excel</span>
+                        <span class="tag">Modélisation</span>
+                        <span class="tag">Bloomberg</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 1 jour</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+        </div>
+        <div class="view-all-container">
+            <a href="stages.html" class="btn btn-outline btn-lg">Voir tous les stages <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2 class="cta-title">Vous êtes une entreprise ?</h2>
+            <p class="cta-text">Publiez vos offres de stage et trouvez les talents de demain pour renforcer vos équipes et développer votre activité.</p>
+            <a href="contact.html" class="btn btn-white">Publier une offre de stage</a>
+        </div>
+    </div>
+</section>
+
+<section class="newsletter">
+    <div class="container">
+        <div class="newsletter-content">
+            <h2 class="section-title">Restez informé</h2>
+            <p>Inscrivez-vous à notre newsletter pour recevoir les dernières offres de stage et conseils pour votre recherche.</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Votre adresse email">
+                <button type="submit" class="btn btn-primary">S'abonner</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>LeBonPlan</h3>
+                <p>La plateforme qui facilite la recherche de stages pour les étudiants et la recherche de talents pour les entreprises.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com/" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.linkedin.com/in/julian-kerignard-b9ab6a2bb/" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Liens utiles</h3>
+                <ul class="footer-links">
+                    <li><a href="#">À propos</a></li>
+                    <li><a href="MentionLegal.html">GCU</a></li>
+                    <li><a href="terms.html">Mention Légales</a></li>
+                    <li><a href="contact.html">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Candidats</h3>
+                <ul class="footer-links">
+                    <li><a href="stages.html">Parcourir les stages</a></li>
+                    <li><a href="entreprises.html">Parcourir les entreprises</a></li>
+                    <li><a href="login.html">Se Connecter</a></li>
+                    <li><a href="../Dashboard/Student/studentDashboard.html">Dashboard Etudiant</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 LeBonPlan. Tous droits réservés.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

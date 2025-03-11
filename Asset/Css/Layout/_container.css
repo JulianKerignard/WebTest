@@ -1,0 +1,53 @@
+﻿/* _container.css */
+.container {
+    width: 100%;
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 576px) {
+    .container {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+.container-fluid {
+    width: 100%;
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Section spacings */
+.section {
+    padding: var(--spacing-xxl) 0;
+}
+
+.section-sm {
+    padding: var(--spacing-xl) 0;
+}
+
+.section-lg {
+    padding: calc(var(--spacing-xxl) * 1.5) 0;
+}

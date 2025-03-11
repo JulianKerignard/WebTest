@@ -1,0 +1,212 @@
+﻿/* _home.css */
+/* Hero Section */
+.hero {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    color: white;
+    padding: 5rem 0;
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-bottom: var(--spacing-md);
+    font-weight: var(--font-weight-bold);
+}
+
+.hero p {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.9;
+}
+
+.hero .search-bar {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Features section */
+.features {
+    padding: var(--spacing-xxl) 0;
+    background-color: var(--color-white);
+}
+
+.section-title {
+    text-align: center;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    margin-bottom: var(--spacing-xxl);
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background-color: var(--color-secondary);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+.feature-card {
+    background-color: var(--color-white);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-md);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.feature-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.feature-card p {
+    color: var(--color-text-light);
+    font-size: var(--font-size-small);
+}
+
+/* Internships section */
+.internships {
+    padding: var(--spacing-xxl) 0;
+    background-color: var(--color-background);
+}
+
+.internships-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.filter-options {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.filter-button {
+    padding: 8px 16px;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-full);
+    cursor: pointer;
+    transition: var(--transition-fast);
+    font-size: var(--font-size-small);
+}
+
+.filter-button.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+}
+
+.filter-button:hover:not(.active) {
+    background-color: var(--color-background);
+}
+
+.view-all-container {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+}
+
+/* CTA section */
+.cta-section {
+    background: linear-gradient(135deg, var(--color-secondary), #b5179e);
+    color: white;
+    padding: var(--spacing-xxl) 0;
+    text-align: center;
+}
+
+.cta-content {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.cta-title {
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    margin-bottom: var(--spacing-md);
+}
+
+.cta-text {
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.9;
+}
+
+/* Newsletter section */
+.newsletter {
+    padding: var(--spacing-xxl) 0;
+    background-color: var(--color-white);
+}
+
+.newsletter-content {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.newsletter-form {
+    display: flex;
+    margin-top: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+}
+
+.newsletter-form input {
+    flex: 1;
+    padding: 1rem;
+    border: none;
+    outline: none;
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+    .internships-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+
+    .filter-options {
+        overflow-x: auto;
+        padding-bottom: var(--spacing-xs);
+        width: 100%;
+    }
+
+    .newsletter-form {
+        flex-direction: column;
+    }
+
+    .newsletter-form input {
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .newsletter-form button {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+}

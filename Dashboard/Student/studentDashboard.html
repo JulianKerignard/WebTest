@@ -1,0 +1,459 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeBonPlan - Tableau de bord</title>
+    <link rel="stylesheet" href="../../Asset/Css/Style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="dashboard-body">
+<script src="../../Asset/Js/scripts.js"></script>
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <a href="../../Main/index.html" class="logo">
+                <i class="fas fa-briefcase"></i>
+            </a>
+            <button class="close-sidebar-btn" id="closeSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="/api/placeholder/100/100" alt="Photo de profil">
+            </div>
+            <div class="user-info">
+                <h3>Marie Dubois</h3>
+                <p>Étudiante en Informatique</p>
+                <span class="user-status">
+                        <i class="fas fa-circle"></i> En recherche de stage
+                    </span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="active">
+                    <a href="#"><i class="fas fa-home"></i> Tableau de bord</a>
+                </li>
+                <li>
+                    <a href="../../Main/stages.html"><i class="fas fa-search"></i> Rechercher des stages</a>
+                </li>
+                <li>
+                    <a href="/Dashboard/Student/candidature.html"><i class="fas fa-file-alt"></i> Mes candidatures</a>
+                </li>
+                <li>
+                    <a href="/Dashboard/Student/StagesFav.html"><i class="fas fa-star"></i> Stages favoris</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-bell"></i> Notifications</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-user"></i> Mon profil</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fas fa-cog"></i> Paramètres</a>
+                </li>
+                <li class="sidebar-divider"></li>
+                <li>
+                    <a href="#"><i class="fas fa-question-circle"></i> Aide</a>
+                </li>
+                <li>
+                    <a href="../../Main/index.html"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <header class="dashboard-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="header-search">
+                <div class="input-with-icon">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Rechercher un stage...">
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="notification-badge">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="message-badge">
+                    <i class="fas fa-envelope"></i>
+                    <span class="badge">5</span>
+                </div>
+                <div class="user-dropdown">
+                    <img src="/api/placeholder/40/40" alt="Photo de profil">
+                    <span>Marie Dubois</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <div class="page-title">
+                <h1>Tableau de bord</h1>
+                <p>Bienvenue Marie, voici l'état de vos candidatures</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>8</h3>
+                        <p>Candidatures envoyées</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>3</h3>
+                        <p>En cours d'examen</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>2</h3>
+                        <p>Entretiens prévus</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>5</h3>
+                        <p>Stages favoris</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-row">
+                <div class="content-column">
+                    <div class="dashboard-card">
+                        <div class="card-header-alt">
+                            <h2>Candidatures récentes</h2>
+                            <a href="#" class="view-all">Voir tout <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="applications-list">
+                            <div class="application-item">
+                                <div class="company-logo-sm">TD</div>
+                                <div class="application-details">
+                                    <h3>Stage Marketing Digital</h3>
+                                    <p>TechDream - Lyon</p>
+                                </div>
+                                <div class="application-status pending">
+                                    <span>En attente</span>
+                                </div>
+                                <div class="application-date">
+                                    <i class="far fa-clock"></i> Il y a 2 jours
+                                </div>
+                            </div>
+                            <div class="application-item">
+                                <div class="company-logo-sm">AB</div>
+                                <div class="application-details">
+                                    <h3>Développeur Full Stack</h3>
+                                    <p>Acme Branding - Paris</p>
+                                </div>
+                                <div class="application-status in-review">
+                                    <span>En cours d'examen</span>
+                                </div>
+                                <div class="application-date">
+                                    <i class="far fa-clock"></i> Il y a 5 jours
+                                </div>
+                            </div>
+                            <div class="application-item">
+                                <div class="company-logo-sm">GS</div>
+                                <div class="application-details">
+                                    <h3>Data Analyst</h3>
+                                    <p>Green Solutions - Bordeaux</p>
+                                </div>
+                                <div class="application-status interview">
+                                    <span>Entretien prévu</span>
+                                </div>
+                                <div class="application-date">
+                                    <i class="fas fa-calendar"></i> 15 mars 2025
+                                </div>
+                            </div>
+                            <div class="application-item">
+                                <div class="company-logo-sm">CI</div>
+                                <div class="application-details">
+                                    <h3>UX/UI Designer</h3>
+                                    <p>Creative Impulse - Nantes</p>
+                                </div>
+                                <div class="application-status rejected">
+                                    <span>Refusé</span>
+                                </div>
+                                <div class="application-date">
+                                    <i class="far fa-clock"></i> Il y a 2 semaines
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-column">
+                    <div class="dashboard-card">
+                        <div class="card-header-alt">
+                            <h2>Événements à venir</h2>
+                            <a href="#" class="view-all">Voir tout <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="events-list">
+                            <div class="event-item">
+                                <div class="event-date">
+                                    <span class="day">15</span>
+                                    <span class="month">Mars</span>
+                                </div>
+                                <div class="event-details">
+                                    <h3>Entretien - Green Solutions</h3>
+                                    <p><i class="fas fa-clock"></i> 14:00 - 15:00</p>
+                                    <p><i class="fas fa-video"></i> Visioconférence</p>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-date">
+                                    <span class="day">18</span>
+                                    <span class="month">Mars</span>
+                                </div>
+                                <div class="event-details">
+                                    <h3>Entretien - TechVision</h3>
+                                    <p><i class="fas fa-clock"></i> 10:30 - 11:30</p>
+                                    <p><i class="fas fa-map-marker-alt"></i> Paris</p>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-date">
+                                    <span class="day">22</span>
+                                    <span class="month">Mars</span>
+                                </div>
+                                <div class="event-details">
+                                    <h3>Salon des stages - Université</h3>
+                                    <p><i class="fas fa-clock"></i> 09:00 - 17:00</p>
+                                    <p><i class="fas fa-map-marker-alt"></i> Campus Central</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-header-alt">
+                            <h2>Compléter votre profil</h2>
+                        </div>
+                        <div class="profile-progress">
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 75%"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span>75% complété</span>
+                            </div>
+                        </div>
+                        <div class="profile-tasks">
+                            <div class="task-item completed">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Informations personnelles</span>
+                            </div>
+                            <div class="task-item completed">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Formation académique</span>
+                            </div>
+                            <div class="task-item completed">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Compétences</span>
+                            </div>
+                            <div class="task-item">
+                                <i class="far fa-circle"></i>
+                                <span>Ajouter des expériences professionnelles</span>
+                            </div>
+                            <div class="task-item">
+                                <i class="far fa-circle"></i>
+                                <span>Télécharger votre CV</span>
+                            </div>
+                        </div>
+                        <a href="#" class="btn btn-outline btn-sm">Compléter mon profil</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <div class="card-header-alt">
+                    <h2>Stages recommandés pour vous</h2>
+                    <a href="#" class="view-all">Voir tout <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="recommended-internships">
+                    <div class="internship-card-sm">
+                        <div class="card-header">
+                            <div class="company-logo-sm">NX</div>
+                            <div class="card-title">
+                                <h3>Développeur Backend</h3>
+                                <div class="company-name">NextCloud</div>
+                            </div>
+                            <button class="bookmark-btn">
+                                <i class="far fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="internship-details-sm">
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span class="detail-text">Paris, France</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-euro-sign"></i>
+                                    <span class="detail-text">900€/mois</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span class="detail-text">6 mois</span>
+                                </div>
+                            </div>
+                            <div class="internship-tags-sm">
+                                <span class="tag">Python</span>
+                                <span class="tag">Django</span>
+                                <span class="tag">API</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                                <span class="match-score">
+                                    <i class="fas fa-bolt"></i> 92% de correspondance
+                                </span>
+                            <a href="#" class="btn btn-primary btn-sm">Postuler</a>
+                        </div>
+                    </div>
+
+                    <div class="internship-card-sm">
+                        <div class="card-header">
+                            <div class="company-logo-sm">IS</div>
+                            <div class="card-title">
+                                <h3>Développeur Frontend</h3>
+                                <div class="company-name">InnoSoft</div>
+                            </div>
+                            <button class="bookmark-btn">
+                                <i class="far fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="internship-details-sm">
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span class="detail-text">Lyon, France</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-euro-sign"></i>
+                                    <span class="detail-text">850€/mois</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span class="detail-text">5 mois</span>
+                                </div>
+                            </div>
+                            <div class="internship-tags-sm">
+                                <span class="tag">React</span>
+                                <span class="tag">JavaScript</span>
+                                <span class="tag">CSS</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                                <span class="match-score">
+                                    <i class="fas fa-bolt"></i> 88% de correspondance
+                                </span>
+                            <a href="#" class="btn btn-primary btn-sm">Postuler</a>
+                        </div>
+                    </div>
+
+                    <div class="internship-card-sm">
+                        <div class="card-header">
+                            <div class="company-logo-sm">DS</div>
+                            <div class="card-title">
+                                <h3>Développeur Mobile</h3>
+                                <div class="company-name">DataSphere</div>
+                            </div>
+                            <button class="bookmark-btn">
+                                <i class="far fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="internship-details-sm">
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span class="detail-text">Toulouse, France</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-euro-sign"></i>
+                                    <span class="detail-text">800€/mois</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span class="detail-text">4 mois</span>
+                                </div>
+                            </div>
+                            <div class="internship-tags-sm">
+                                <span class="tag">Flutter</span>
+                                <span class="tag">Dart</span>
+                                <span class="tag">Firebase</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                                <span class="match-score">
+                                    <i class="fas fa-bolt"></i> 85% de correspondance
+                                </span>
+                            <a href="#" class="btn btn-primary btn-sm">Postuler</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+
+
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>LeBonPlan</h3>
+                <p>La plateforme qui facilite la recherche de stages pour les étudiants et la recherche de talents pour les entreprises.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com/" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.linkedin.com/in/julian-kerignard-b9ab6a2bb/" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Liens utiles</h3>
+                <ul class="footer-links">
+                    <li><a href="#">À propos</a></li>
+                    <li><a href="../../Main/MentionLegal.html">GCU</a></li>
+                    <li><a href="../../Main/terms.html">Mention Légales</a></li>
+                    <li><a href="../../Main/contact.html">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Candidats</h3>
+                <ul class="footer-links">
+                    <li><a href="../../Main/stages.html">Parcourir les stages</a></li>
+                    <li><a href="../../Main/entreprises.html">Parcourir les entreprises</a></li>
+                    <li><a href="../../Main/login.html">Se Connecter</a></li>
+                    <li><a href="studentDashboard.html">Dashboard Etudiant</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 LeBonPlan. Tous droits réservés.</p>
+        </div>
+    </div>
+</footer>
+</html>

@@ -1,0 +1,719 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeBonPlan - Recherche de Stages</title>
+    <link rel="stylesheet" href="../Asset/Css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+<script src="../Asset/Js/scripts.js"></script>
+
+<header>
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <i class="fas fa-briefcase"></i>
+                LeBonPlan
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">Accueil</a></li>
+                <li class="active"><a href="stages.html">Stages</a></li>
+                <li><a href="entreprises.html">Entreprises</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-outline">Connexion</a>
+            </div>
+        </nav>
+    </div>
+</header>
+<section class="search-section">
+    <div class="container">
+        <div class="search-container">
+            <div class="search-bar advanced">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Titre, mot-clé ou entreprise">
+                </div>
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <select>
+                            <option value="">Toutes les villes</option>
+                            <option value="paris">Paris</option>
+                            <option value="lyon">Lyon</option>
+                            <option value="marseille">Marseille</option>
+                            <option value="bordeaux">Bordeaux</option>
+                            <option value="toulouse">Toulouse</option>
+                            <option value="nantes">Nantes</option>
+                            <option value="strasbourg">Strasbourg</option>
+                            <option value="lille">Lille</option>
+                            <option value="montpellier">Montpellier</option>
+                            <option value="remote">Télétravail</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <i class="fas fa-th-large"></i>
+                        <select>
+                            <option value="">Tous les domaines</option>
+                            <option value="tech">Informatique & Tech</option>
+                            <option value="marketing">Marketing & Communication</option>
+                            <option value="finance">Finance & Comptabilité</option>
+                            <option value="sante">Santé</option>
+                            <option value="education">Éducation</option>
+                            <option value="rh">Ressources Humaines</option>
+                            <option value="design">Design & Créativité</option>
+                            <option value="ingenierie">Ingénierie</option>
+                            <option value="vente">Vente & Commerce</option>
+                            <option value="juridique">Juridique</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <i class="fas fa-euro-sign"></i>
+                        <select>
+                            <option value="">Rémunération</option>
+                            <option value="600">600€ min.</option>
+                            <option value="700">700€ min.</option>
+                            <option value="800">800€ min.</option>
+                            <option value="900">900€ min.</option>
+                            <option value="1000">1000€ min.</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <i class="fas fa-clock"></i>
+                        <select>
+                            <option value="">Durée</option>
+                            <option value="2">2 mois</option>
+                            <option value="3">3 mois</option>
+                            <option value="4">4 mois</option>
+                            <option value="5">5 mois</option>
+                            <option value="6">6 mois et +</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Rechercher</button>
+            </div>
+            <div class="advanced-filters">
+                <button class="btn-filter-toggle" id="filterToggle">
+                    <i class="fas fa-sliders-h"></i> Filtres avancés
+                </button>
+                <div class="sort-options">
+                    <span>Trier par :</span>
+                    <select id="sortSelect">
+                        <option value="recent">Plus récents</option>
+                        <option value="salary">Mieux rémunérés</option>
+                        <option value="relevant">Plus pertinents</option>
+                        <option value="duration">Durée</option>
+                    </select>
+                </div>
+                <div class="view-options">
+                    <button class="view-btn active" data-view="grid">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="view-btn" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="filter-tags-container">
+                <div class="filter-tags">
+                        <span class="filter-tag">
+                            Informatique & Tech
+                            <button class="remove-tag"><i class="fas fa-times"></i></button>
+                        </span>
+                    <span class="filter-tag">
+                            Paris
+                            <button class="remove-tag"><i class="fas fa-times"></i></button>
+                        </span>
+                    <span class="filter-tag">
+                            6 mois et +
+                            <button class="remove-tag"><i class="fas fa-times"></i></button>
+                        </span>
+                    <button class="clear-filters">Effacer tous les filtres</button>
+                </div>
+            </div>
+            <div class="search-results-info">
+                <p><strong>248 stages</strong> correspondent à votre recherche</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="filters-panel" id="filtersPanel">
+    <div class="container">
+        <div class="filters-content">
+            <div class="filters-column">
+                <div class="filter-group-title">
+                    <h3>Type de stage</h3>
+                    <h3>Type de stage</h3>
+                </div>
+                <div class="filter-options">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="conventionne">
+                        <label for="conventionné">Stage conventionné</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="alternance">
+                        <label for="alternance">Alternance</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="international">
+                        <label for="international">International</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="teletravail">
+                        <label for="teletravail">Télétravail</label>
+                    </div>
+                </div>
+            </div>
+            <div class="filters-column">
+                <div class="filter-group-title">
+                    <h3>Compétences</h3>
+                </div>
+                <div class="filter-options skills-filter">
+                    <div class="skill-tag">JavaScript</div>
+                    <div class="skill-tag">Python</div>
+                    <div class="skill-tag">Marketing Digital</div>
+                    <div class="skill-tag">Excel</div>
+                    <div class="skill-tag">Design UX/UI</div>
+                    <div class="skill-tag">React</div>
+                    <div class="skill-tag">Communication</div>
+                    <div class="skill-tag">Photoshop</div>
+                    <div class="skill-tag">SEO</div>
+                    <div class="skill-tag">NodeJS</div>
+                </div>
+            </div>
+            <div class="filters-column">
+                <div class="filter-group-title">
+                    <h3>Niveau d'études</h3>
+                </div>
+                <div class="filter-options">
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="bac">
+                        <label for="bac">Bac</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="bac2">
+                        <label for="bac2">Bac+2</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="bac3">
+                        <label for="bac3">Bac+3</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="bac4">
+                        <label for="bac4">Bac+4</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="checkbox" id="bac5">
+                        <label for="bac5">Bac+5 et plus</label>
+                    </div>
+                </div>
+            </div>
+            <div class="filters-column">
+                <div class="filter-group-title">
+                    <h3>Date de publication</h3>
+                </div>
+                <div class="filter-options">
+                    <div class="filter-checkbox">
+                        <input type="radio" name="date" id="aujourdhui">
+                        <label for="aujourdhui">Aujourd'hui</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="radio" name="date" id="3jours">
+                        <label for="3jours">3 derniers jours</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="radio" name="date" id="semaine">
+                        <label for="semaine">7 derniers jours</label>
+                    </div>
+                    <div class="filter-checkbox">
+                        <input type="radio" name="date" id="mois" checked>
+                        <label for="mois">30 derniers jours</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="filters-actions">
+            <button class="btn btn-outline">Réinitialiser</button>
+            <button class="btn btn-primary">Appliquer les filtres</button>
+        </div>
+    </div>
+</section>
+
+<section class="internships-results">
+    <div class="container">
+        <div class="internship-grid">
+            <!-- Annonce de stage 1 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">AB</div>
+                    <div class="card-title">
+                        <h3>Développeur Full Stack</h3>
+                        <div class="company-name">Acme Branding</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Paris, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">800-1000€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">6 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+4/5</span>
+                        </div>
+                    </div>
+                    <p>Stage au sein d'une équipe de développeurs pour participer à la création de nouvelles fonctionnalités sur notre plateforme e-commerce.</p>
+                    <div class="internship-tags">
+                        <span class="tag">React</span>
+                        <span class="tag">Node.js</span>
+                        <span class="tag">MongoDB</span>
+                        <span class="tag">Agile</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 2 jours</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 2 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">TD</div>
+                    <div class="card-title">
+                        <h3>Marketing Digital</h3>
+                        <div class="company-name">TechDream</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Lyon, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">700€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">4 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+3/4</span>
+                        </div>
+                    </div>
+                    <p>Rejoignez notre équipe marketing pour développer des campagnes digitales innovantes et analyser leur performance.</p>
+                    <div class="internship-tags">
+                        <span class="tag">SEO</span>
+                        <span class="tag">Google Ads</span>
+                        <span class="tag">Social Media</span>
+                        <span class="tag">Analytics</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 1 semaine</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 3 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">GS</div>
+                    <div class="card-title">
+                        <h3>Data Analyst</h3>
+                        <div class="company-name">Green Solutions</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Bordeaux, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">900€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">6 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+5</span>
+                        </div>
+                    </div>
+                    <p>Stage en analyse de données environnementales pour aider à l'optimisation de nos processus écologiques et à la prise de décision.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Python</span>
+                        <span class="tag">R</span>
+                        <span class="tag">SQL</span>
+                        <span class="tag">Tableau</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 3 jours</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 4 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">CI</div>
+                    <div class="card-title">
+                        <h3>UX/UI Designer</h3>
+                        <div class="company-name">Creative Impulse</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Nantes, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">750€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">5 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+3/4</span>
+                        </div>
+                    </div>
+                    <p>Participez à la conception d'interfaces utilisateur intuitives et esthétiques pour nos applications mobiles et web.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Figma</span>
+                        <span class="tag">Adobe XD</span>
+                        <span class="tag">Sketch</span>
+                        <span class="tag">Prototype</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 5 jours</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 5 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">FB</div>
+                    <div class="card-title">
+                        <h3>Analyste Financier</h3>
+                        <div class="company-name">Finance Bank</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Paris, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">1000€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">6 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+4/5</span>
+                        </div>
+                    </div>
+                    <p>Stage au sein de notre département financier pour participer à l'analyse des risques et à la gestion de portefeuille.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Finance</span>
+                        <span class="tag">Excel</span>
+                        <span class="tag">Modélisation</span>
+                        <span class="tag">Bloomberg</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 1 jour</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 6 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">NX</div>
+                    <div class="card-title">
+                        <h3>Développeur Backend</h3>
+                        <div class="company-name">NextCloud</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Paris, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">900€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">6 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+4/5</span>
+                        </div>
+                    </div>
+                    <p>Participez au développement de notre infrastructure backend cloud pour améliorer les performances et ajouter de nouvelles fonctionnalités.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Python</span>
+                        <span class="tag">Django</span>
+                        <span class="tag">API</span>
+                        <span class="tag">PostgreSQL</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié aujourd'hui</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 7 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">IS</div>
+                    <div class="card-title">
+                        <h3>Développeur Frontend</h3>
+                        <div class="company-name">InnoSoft</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Lyon, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">850€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">5 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+3/4</span>
+                        </div>
+                    </div>
+                    <p>Rejoignez notre équipe frontend pour développer des interfaces utilisateur modernes et réactives pour nos applications web.</p>
+                    <div class="internship-tags">
+                        <span class="tag">React</span>
+                        <span class="tag">JavaScript</span>
+                        <span class="tag">Tailwind CSS</span>
+                        <span class="tag">Redux</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 2 jours</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 8 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">DS</div>
+                    <div class="card-title">
+                        <h3>Développeur Mobile</h3>
+                        <div class="company-name">DataSphere</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Toulouse, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">800€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">4 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+3/4</span>
+                        </div>
+                    </div>
+                    <p>Participez au développement d'applications mobiles innovantes utilisant les dernières technologies de développement cross-platform.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Flutter</span>
+                        <span class="tag">Dart</span>
+                        <span class="tag">Firebase</span>
+                        <span class="tag">Mobile</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 4 jours</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+
+            <!-- Annonce de stage 9 -->
+            <div class="internship-card">
+                <div class="card-header">
+                    <div class="company-logo">EC</div>
+                    <div class="card-title">
+                        <h3>Chargé de communication</h3>
+                        <div class="company-name">EcoConsult</div>
+                    </div>
+                    <button class="bookmark-btn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="internship-details">
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="detail-text">Montpellier, France</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-euro-sign"></i>
+                            <span class="detail-text">700€/mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="detail-text">6 mois</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="detail-text">Bac+3/4</span>
+                        </div>
+                    </div>
+                    <p>Rejoignez notre équipe de communication pour élaborer et mettre en œuvre notre stratégie digitale autour de projets environnementaux.</p>
+                    <div class="internship-tags">
+                        <span class="tag">Communication</span>
+                        <span class="tag">Réseaux sociaux</span>
+                        <span class="tag">Contenu digital</span>
+                        <span class="tag">Environnement</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="posted-date">Publié il y a 1 semaine</span>
+                    <a href="login.html" class="btn btn-primary">Postuler</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination">
+            <a href="#" class="pagination-prev disabled"><i class="fas fa-chevron-left"></i></a>
+            <a href="#" class="pagination-item active">1</a>
+            <a href="#" class="pagination-item">2</a>
+            <a href="#" class="pagination-item">3</a>
+            <a href="#" class="pagination-item">4</a>
+            <span class="pagination-more">...</span>
+            <a href="#" class="pagination-item">12</a>
+            <a href="#" class="pagination-next"><i class="fas fa-chevron-right"></i></a>
+        </div>
+    </div>
+</section>
+
+<section class="newsletter search-newsletter">
+    <div class="container">
+        <div class="newsletter-content">
+            <h2 class="section-title">Recevez les offres qui vous correspondent</h2>
+            <p>Créez des alertes personnalisées et recevez par email les dernières offres de stage selon vos critères.</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Votre adresse email">
+                <button type="submit" class="btn btn-primary">Créer une alerte</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>LeBonPlan</h3>
+                <p>La plateforme qui facilite la recherche de stages pour les étudiants et la recherche de talents pour les entreprises.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://x.com/" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="https://www.linkedin.com/in/julian-kerignard-b9ab6a2bb/" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Liens utiles</h3>
+                <ul class="footer-links">
+                    <li><a href="#">À propos</a></li>
+                    <li><a href="MentionLegal.html">GCU</a></li>
+                    <li><a href="terms.html">Mention Légales</a></li>
+                    <li><a href="contact.html">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Candidats</h3>
+                <ul class="footer-links">
+                    <li><a href="stages.html">Parcourir les stages</a></li>
+                    <li><a href="entreprises.html">Parcourir les entreprises</a></li>
+                    <li><a href="login.html">Se Connecter</a></li>
+                    <li><a href="../Dashboard/Student/studentDashboard.html">Dashboard Etudiant</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 LeBonPlan. Tous droits réservés.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
