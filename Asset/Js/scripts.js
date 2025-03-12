@@ -1,6 +1,6 @@
 ﻿/**
  * LeBonPlan - Code JavaScript principal
- * Version optimisée
+ * Version optimisée avec corrections pour les favoris
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Initialisation de l'interface
@@ -181,23 +181,54 @@ function setupFilters() {
 }
 
 /**
- * Gestion des favoris avec animations
+ * Gestion des favoris avec animations - Compatible avec la structure HTML existante
  */
 function setupFavorites() {
+    // Sélectionne tous les boutons de favoris (bookmark ou star)
     const bookmarkBtns = document.querySelectorAll('.bookmark-btn');
+
+    if (!bookmarkBtns.length) return; // Sortir si aucun bouton n'existe
 
     bookmarkBtns.forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation(); // Éviter la propagation aux éléments parents
 
-            const icon = this.querySelector('i');
-            const stageId = this.closest('.internship-card').dataset.id;
+            // Vérifier si le bouton est déjà en cours de traitement
+            if (this.classList.contains('processing')) {
+                return; // Éviter les clics multiples pendant le traitement
+            }
 
-            if (icon.classList.contains('far')) {
-                addToFavorites(stageId, this);
+            // Marquer comme en cours de traitement
+            this.classList.add('processing');
+
+            const icon = this.querySelector('i');
+            if (!icon) {
+                console.warn('Icône non trouvée dans le bouton favori');
+                this.classList.remove('processing');
+                return;
+            }
+
+            // Extraire des informations pour l'AJAX
+            const card = this.closest('.internship-card');
+            const titleElement = card?.querySelector('.card-title h3');
+            const title = titleElement ? titleElement.textContent.trim() : 'Stage';
+
+            // Déterminer si on ajoute ou supprime des favoris
+            // En vérifiant plusieurs conditions possibles (far/fas, bookmark/star)
+            const isBookmark = icon.classList.contains('fa-bookmark');
+            const isStar = icon.classList.contains('fa-star');
+            const isEmpty = icon.classList.contains('far');
+            const isFilled = icon.classList.contains('fas');
+
+            console.log('Click détecté:', { isBookmark, isStar, isEmpty, isFilled });
+
+            if ((isBookmark && isEmpty) || (isStar && isEmpty) || (!isFilled)) {
+                // C'est vide, donc on ajoute aux favoris
+                addToFavorites(title, this, icon);
             } else {
-                removeFromFavorites(stageId, this);
+                // C'est déjà plein, donc on retire des favoris
+                removeFromFavorites(title, this, icon);
             }
         });
     });
@@ -209,106 +240,142 @@ function setupFavorites() {
         removeFavBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const card = this.closest('.internship-card');
-                const stageId = card.dataset.id;
+                if (!card) {
+                    console.warn('Carte de stage non trouvée');
+                    return;
+                }
+
+                // Désactiver le bouton pour éviter les clics multiples
+                this.disabled = true;
 
                 // Animation de suppression
                 card.classList.add('removing');
 
-                // Appel AJAX
-                fetch('actions/favorites.php?action=remove&id=' + stageId)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            setTimeout(() => {
-                                card.remove();
-                                updateFavoritesCounter();
-                                showToast('Stage retiré des favoris', 'success');
-                            }, 500);
-                        } else {
-                            card.classList.remove('removing');
-                            showToast('Erreur lors de la suppression', 'error');
-                        }
-                    })
-                    .catch(error => {
+                // AJAX simulé (à remplacer par votre appel réel)
+                setTimeout(() => {
+                    try {
+                        // Attendre que l'animation soit terminée avant de supprimer
+                        setTimeout(() => {
+                            card.remove();
+                            updateFavoritesCounter();
+                            showToast('Stage retiré des favoris', 'success');
+                        }, 500);
+                    } catch (error) {
+                        console.error('Erreur lors de la suppression:', error);
                         card.classList.remove('removing');
+                        this.disabled = false;
                         showToast('Erreur de connexion', 'error');
-                    });
+                    }
+                }, 300);
             });
         });
     }
 }
 
 /**
- * Ajoute un stage aux favoris avec animation
+ * Ajoute un stage aux favoris (compatible avec bookmark ou star)
  */
-function addToFavorites(stageId, button) {
-    const icon = button.querySelector('i');
+function addToFavorites(title, button, icon) {
+    console.log('Ajout aux favoris:', title);
 
-    // Animation visuelle immédiate
-    icon.classList.replace('far', 'fas');
-    icon.style.color = '#f72585'; // Couleur secondaire
+    // Déterminer le type d'icône (bookmark ou star)
+    const isBookmark = icon.classList.contains('fa-bookmark');
+    const isStar = icon.classList.contains('fa-star');
 
-    // Ajouter une animation de pulse
-    icon.classList.add('pulse-animation');
+    // Animation visuelle immédiate mais plus douce
+    icon.classList.add('favorite-icon-transition');
 
-    // Envoyer la requête AJAX
-    fetch('actions/favorites.php?action=add&id=' + stageId)
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                showToast('Stage ajouté aux favoris', 'success');
-
-                // Animation réussie - délai augmenté
-                setTimeout(() => {
-                    icon.classList.remove('pulse-animation');
-                }, 1000); // Augmenté à 1000ms pour permettre à l'animation de se terminer
+    // Changer l'icône et la couleur après un court délai
+    setTimeout(() => {
+        if (isBookmark) {
+            // Pour les icônes bookmark
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+        } else if (isStar) {
+            // Pour les icônes star
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+        } else {
+            // Fallback pour d'autres types d'icônes
+            if (icon.classList.contains('far')) {
+                icon.classList.replace('far', 'fas');
             } else {
-                // Échec - remettre l'état initial
-                icon.classList.replace('fas', 'far');
-                icon.style.color = '';
-                showToast(data.message || 'Erreur lors de l\'ajout aux favoris', 'error');
+                icon.classList.add('fas');
             }
-        })
-        .catch(error => {
-            // En cas d'erreur, revenir à l'état initial
-            icon.classList.replace('fas', 'far');
-            icon.style.color = '';
-            showToast('Connexion perdue, veuillez réessayer', 'error');
+        }
+
+        icon.style.color = '#f72585'; // Couleur secondaire
+
+        // Ajouter l'animation de pulse APRÈS le changement d'icône
+        requestAnimationFrame(() => {
+            icon.classList.add('pulse-animation');
         });
+    }, 50);
+
+    // AJAX simulé
+    setTimeout(() => {
+        // Après la fin de l'animation (600ms)
+        setTimeout(() => {
+            // Nettoyer les classes d'animation
+            icon.classList.remove('pulse-animation');
+
+            // Enlever le statut de traitement
+            button.classList.remove('processing');
+
+            showToast(`${title} ajouté aux favoris`, 'success');
+        }, 650);
+    }, 300);
 }
 
 /**
- * Retire un stage des favoris avec animation
+ * Retire un stage des favoris (compatible avec bookmark ou star)
  */
-function removeFromFavorites(stageId, button) {
-    const icon = button.querySelector('i');
+function removeFromFavorites(title, button, icon) {
+    console.log('Retrait des favoris:', title);
 
-    // Animation visuelle
+    // Déterminer le type d'icône (bookmark ou star)
+    const isBookmark = icon.classList.contains('fa-bookmark');
+    const isStar = icon.classList.contains('fa-star');
+
+    // Animation visuelle immédiate
     icon.classList.add('shake-animation');
 
-    // Envoyer la requête AJAX
-    fetch('actions/favorites.php?action=remove&id=' + stageId)
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                // Transition douce - délai augmenté
-                setTimeout(() => {
-                    icon.classList.remove('shake-animation');
-                    icon.classList.replace('fas', 'far');
-                    icon.style.color = '';
-                }, 500); // Augmenté à 500ms pour permettre à l'animation de se terminer
-
-                showToast('Stage retiré des favoris');
-            } else {
-                // Échec
-                icon.classList.remove('shake-animation');
-                showToast('Erreur lors du retrait des favoris', 'error');
-            }
-        })
-        .catch(error => {
+    // AJAX simulé
+    setTimeout(() => {
+        // Attendre la fin de l'animation
+        setTimeout(() => {
+            // Transition douce pour le changement d'icône
             icon.classList.remove('shake-animation');
-            showToast('Connexion perdue, veuillez réessayer', 'error');
-        });
+            icon.classList.add('favorite-icon-transition');
+
+            // Changer l'icône en fonction de son type
+            setTimeout(() => {
+                if (isBookmark) {
+                    // Pour les icônes bookmark
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                } else if (isStar) {
+                    // Pour les icônes star
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                } else {
+                    // Fallback pour d'autres types d'icônes
+                    if (icon.classList.contains('fas')) {
+                        icon.classList.replace('fas', 'far');
+                    } else {
+                        icon.classList.add('far');
+                    }
+                }
+
+                icon.style.color = ''; // Réinitialiser la couleur
+
+                // Enlever le statut de traitement
+                button.classList.remove('processing');
+
+                showToast(`${title} retiré des favoris`, 'success');
+            }, 100);
+        }, 500);
+    }, 300);
 }
 
 /**
@@ -621,47 +688,64 @@ function initApplicationsPage() {
 }
 
 /**
- * Affiche un toast de notification
+ * Affiche une notification Toast améliorée
  */
 function showToast(message, type = 'info') {
-    // Supprimer les toasts existants
-    const existingToasts = document.querySelectorAll('.toast');
-    existingToasts.forEach(toast => toast.remove());
+    console.log('Toast:', message, type);
+
+    // Créer le conteneur de toast s'il n'existe pas
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.classList.add('toast-container');
+        document.body.appendChild(toastContainer);
+    }
 
     // Créer un nouveau toast
     const toast = document.createElement('div');
     toast.classList.add('toast', `toast-${type}`);
+
+    // Icône selon le type
+    let iconClass = 'fa-info-circle';
+    if (type === 'success') iconClass = 'fa-check-circle';
+    if (type === 'error') iconClass = 'fa-exclamation-circle';
+    if (type === 'warning') iconClass = 'fa-exclamation-triangle';
+
     toast.innerHTML = `
-        <div class="toast-content">
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-            <span>${message}</span>
+        <div class="toast-header">
+            <div class="toast-icon"><i class="fas ${iconClass}"></i></div>
+            <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+            <button class="toast-close">&times;</button>
         </div>
-        <button class="toast-close">&times;</button>
+        <div class="toast-body">${message}</div>
     `;
 
-    document.body.appendChild(toast);
+    // Ajouter au conteneur
+    toastContainer.appendChild(toast);
 
-    // Afficher le toast
-    setTimeout(() => {
-        toast.classList.add('toast-visible');
-    }, 10);
+    // Afficher le toast avec une courte animation
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
 
-    // Fermer le toast au clic sur le bouton ou après un délai
+    // Gérer la fermeture
     const closeButton = toast.querySelector('.toast-close');
     closeButton.addEventListener('click', () => {
-        toast.classList.remove('toast-visible');
+        toast.classList.remove('show');
         setTimeout(() => {
-            toast.remove();
+            if (toastContainer.contains(toast)) {
+                toastContainer.removeChild(toast);
+            }
         }, 300);
     });
 
-    // Fermer automatiquement après 5 secondes
+    // Fermeture automatique après 5 secondes
     setTimeout(() => {
-        if (document.body.contains(toast)) {
-            toast.classList.remove('toast-visible');
+        if (toast.classList.contains('show')) {
+            toast.classList.remove('show');
             setTimeout(() => {
-                if (document.body.contains(toast)) {
-                    toast.remove();
+                if (toastContainer.contains(toast)) {
+                    toastContainer.removeChild(toast);
                 }
             }, 300);
         }

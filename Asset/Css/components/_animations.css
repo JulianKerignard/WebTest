@@ -1,26 +1,28 @@
-﻿/* Animations pour les favoris */
+﻿/* _animations.css */
+/* Animations pour les favoris - Version avec compatibilité améliorée */
 @keyframes pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.4); } /* Plus accentué: 1.4 au lieu de 1.2 */
+    50% { transform: scale(1.2); }
     100% { transform: scale(1); }
 }
 
 @keyframes shake {
     0% { transform: rotate(0deg); }
-    25% { transform: rotate(15deg); } /* Plus accentué: 15 au lieu de 10 degrés */
+    25% { transform: rotate(10deg); }
     50% { transform: rotate(0deg); }
-    75% { transform: rotate(-15deg); } /* Plus accentué: -15 au lieu de -10 degrés */
+    75% { transform: rotate(-10deg); }
     100% { transform: rotate(0deg); }
 }
 
-.pulse-animation {
-    animation: pulse 1s ease-in-out; /* Durée augmentée: 1s au lieu de 0.6s */
-    animation-fill-mode: forwards; /* Garde l'état final */
+/* Applique l'animation aux éléments i enfants de .bookmark-btn */
+.bookmark-btn i.pulse-animation {
+    animation: pulse 0.6s ease-in-out;
+    display: inline-block; /* Nécessaire pour les transformations */
 }
 
-.shake-animation {
-    animation: shake 0.7s ease-in-out; /* Durée augmentée: 0.7s au lieu de 0.4s */
-    animation-fill-mode: forwards; /* Garde l'état final */
+.bookmark-btn i.shake-animation {
+    animation: shake 0.5s ease-in-out;
+    display: inline-block; /* Nécessaire pour les transformations */
 }
 
 /* Animation de suppression */
@@ -41,4 +43,92 @@
 
 .removing {
     animation: removeCard 0.5s ease forwards;
+}
+
+/* Transitions pour les changements d'état des icônes */
+.favorite-icon-transition {
+    transition: color 0.3s ease;
+}
+
+/* Styles pour les notifications toast */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 300px;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(50px);
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.toast-icon {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.toast-success .toast-icon {
+    color: #4bb543;
+}
+
+.toast-error .toast-icon {
+    color: #dc3545;
+}
+
+.toast-info .toast-icon {
+    color: #0dcaf0;
+}
+
+.toast-warning .toast-icon {
+    color: #ffc107;
+}
+
+.toast-title {
+    flex: 1;
+    font-weight: 600;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+}
+
+.toast-body {
+    padding: 15px;
+}
+
+/* Styles pour le bouton bookmark actif */
+.bookmark-btn.active i {
+    color: #f72585;
+}
+
+/* Pour les animations de survol sur les boutons de favoris */
+.bookmark-btn:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
 }
