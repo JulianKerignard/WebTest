@@ -1,47 +1,74 @@
 ﻿<?php
 namespace App\Core;
 
-class Template {
-    protected $vars = [];
-    protected $viewsPath;
+class Router {
+    protected $routes = [];
+    protected $request;
+    protected $response;
 
-    public function __construct($viewsPath = null) {
-        $this->viewsPath = $viewsPath ?? __DIR__ . '/../Views/';
+    public function __construct(Request $request, Response $response) {
+        $this->request = $request;
+        $this->response = $response;
     }
 
-    public function set($key, $value) {
-        $this->vars[$key] = $value;
+    public function get($path, $callback) {
+        $this->routes['get'][$path] = $callback;
     }
 
-    public function render($template, $data = []) {
-        $this->vars = array_merge($this->vars, $data);
+    public function post($path, $callback) {
+        $this->routes['post'][$path] = $callback;
+    }
 
-        $templatePath = $this->viewsPath . $template . '.php';
+    public function resolve() {
+        $path = $this->request->getPath();
+        $method = $this->request->method();
+        $callback = $this->routes[$method][$path] ?? false;
 
-        if (!file_exists($templatePath)) {
-            throw new \Exception("Template file {$template}.php does not exist.");
+        // Si la route exacte n'existe pas, vérifier les routes avec paramètres
+        if (!$callback) {
+            foreach ($this->routes[$method] as $route => $handler) {
+                // Convertir les routes avec des paramètres (ex: /user/{id}) en expression régulière
+                $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $route);
+                $pattern = '#^' . $pattern . '$#';
+
+                if (preg_match($pattern, $path, $matches)) {
+                    // Extraire les paramètres
+                    $params = array_filter($matches, function($key) {
+                        return !is_numeric($key);
+                    }, ARRAY_FILTER_USE_KEY);
+
+                    $callback = $handler;
+                    break;
+                }
+            }
         }
 
-        ob_start();
-        extract($this->vars);
-        include $templatePath;
-        return ob_get_clean();
-    }
-
-    public function renderWithLayout($template, $layout = 'main', $data = []) {
-        $content = $this->render($template, $data);
-
-        $layoutPath = $this->viewsPath . 'Templates/' . $layout . '.php';
-
-        if (!file_exists($layoutPath)) {
-            throw new \Exception("Layout file {$layout}.php does not exist.");
+        if (!$callback) {
+            // Route non trouvée
+            $this->response->setStatusCode(404);
+            return $this->renderView('error/404');
         }
 
-        $this->set('content', $content);
+        if (is_string($callback)) {
+            return $this->renderView($callback);
+        }
 
-        ob_start();
-        extract($this->vars);
-        include $layoutPath;
-        return ob_get_clean();
+        if (is_array($callback)) {
+            $controller = new $callback[0]();
+            $method = $callback[1];
+
+            if (isset($params)) {
+                return call_user_func_array([$controller, $method], $params);
+            }
+
+            return $controller->$method();
+        }
+
+        return call_user_func($callback);
+    }
+
+    public function renderView($view, $params = []) {
+        $template = new Template();
+        return $template->render($view, $params);
     }
 }
