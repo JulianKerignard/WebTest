@@ -1,0 +1,13 @@
+{
+  "name": "votreprojet/lebonplan",
+  "description": "Plateforme de recherche de stages pour étudiants",
+  "type": "project",
+  "require": {
+    "php": ">=7.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "App/"
+    }
+  }
+}
