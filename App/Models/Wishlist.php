@@ -10,8 +10,6 @@ class Wishlist {
         $this->db = Database::getInstance();
     }
 
-    // Cette table n'existe pas encore dans le schéma SQL, on va la créer conceptuellement
-
     public function addToWishlist($studentId, $offerId) {
         // Vérifier si l'offre est déjà dans les favoris
         $existing = $this->db->fetch("
@@ -22,7 +20,6 @@ class Wishlist {
             return false; // Déjà dans les favoris
         }
 
-        // Note: cette méthode est théorique car la table n'existe pas encore
         return $this->db->insert('wishlist', [
             'student_id' => $studentId,
             'offer_id' => $offerId,
@@ -31,15 +28,14 @@ class Wishlist {
     }
 
     public function removeFromWishlist($studentId, $offerId) {
-        // Note: cette méthode est théorique car la table n'existe pas encore
         return $this->db->delete('wishlist', 'student_id = ? AND offer_id = ?', [$studentId, $offerId]);
     }
 
     public function getWishlist($studentId) {
-        // Note: cette méthode est théorique car la table n'existe pas encore
         return $this->db->fetchAll("
             SELECT w.*, o.Offer_title, o.Description as offer_description, c.Name as company_name,
-                   o.internship_duration, o.monthly_remuneration, o.Date_of_publication
+                   o.internship_duration, o.monthly_remuneration, o.Date_of_publication,
+                   o.location, o.Starting_internship_date
             FROM wishlist w
             JOIN Offers o ON w.offer_id = o.ID_Offer
             JOIN Company c ON o.ID_Company = c.ID_Company
@@ -49,7 +45,6 @@ class Wishlist {
     }
 
     public function isInWishlist($studentId, $offerId) {
-        // Note: cette méthode est théorique car la table n'existe pas encore
         $result = $this->db->fetch("
             SELECT * FROM wishlist WHERE student_id = ? AND offer_id = ?
         ", [$studentId, $offerId]);
@@ -58,7 +53,6 @@ class Wishlist {
     }
 
     public function countByStudent($studentId) {
-        // Note: cette méthode est théorique car la table n'existe pas encore
         $result = $this->db->fetch("
             SELECT COUNT(*) as count FROM wishlist WHERE student_id = ?
         ", [$studentId]);
@@ -67,7 +61,6 @@ class Wishlist {
     }
 
     public function getMostWishlisted($limit = 5) {
-        // Note: cette méthode est théorique car la table n'existe pas encore
         return $this->db->fetchAll("
             SELECT o.*, c.Name as company_name, COUNT(w.id) as wishlist_count
             FROM wishlist w
@@ -77,5 +70,36 @@ class Wishlist {
             ORDER BY wishlist_count DESC
             LIMIT ?
         ", [$limit]);
+    }
+
+    public function getRecentlyAddedToWishlists($studentId, $limit = 5) {
+        return $this->db->fetchAll("
+            SELECT w.created_at, o.Offer_title, c.Name as company_name
+            FROM wishlist w
+            JOIN Offers o ON w.offer_id = o.ID_Offer
+            JOIN Company c ON o.ID_Company = c.ID_Company
+            WHERE w.student_id = ?
+            ORDER BY w.created_at DESC
+            LIMIT ?
+        ", [$studentId, $limit]);
+    }
+
+    public function getWishlistStatistics() {
+        return [
+            'total_wishlisted_offers' => $this->db->fetch("SELECT COUNT(DISTINCT offer_id) as count FROM wishlist")['count'],
+            'top_wishlisted_offer' => $this->db->fetch("
+                SELECT o.Offer_title, c.Name as company_name, COUNT(w.id) as count
+                FROM wishlist w
+                JOIN Offers o ON w.offer_id = o.ID_Offer
+                JOIN Company c ON o.ID_Company = c.ID_Company
+                GROUP BY w.offer_id
+                ORDER BY count DESC
+                LIMIT 1
+            ")
+        ];
+    }
+
+    public function clearStudentWishlist($studentId) {
+        return $this->db->delete('wishlist', 'student_id = ?', [$studentId]);
     }
 }
