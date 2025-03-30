@@ -4,6 +4,10 @@ $title = 'Recherche de Stages';
 $current_page = 'stages';
 ?>
 
+<link rel="stylesheet" href="/Asset/Css/main.css">
+<link rel="stylesheet" href="/Asset/Css/Style.css">
+<script src="/Asset/Js/scripts.js"></script>
+
 <section class="search-section">
     <div class="container">
         <div class="search-container">

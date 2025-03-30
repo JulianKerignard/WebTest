@@ -22,10 +22,10 @@
                 LeBonPlan
             </a>
             <ul class="nav-menu">
-                <li<?= $current_page === 'home' ? ' class="active"' : '' ?>><a href="/">Accueil</a></li>
-                <li<?= $current_page === 'stages' ? ' class="active"' : '' ?>><a href="/stages">Stages</a></li>
-                <li<?= $current_page === 'entreprises' ? ' class="active"' : '' ?>><a href="/companies">Entreprises</a></li>
-                <li<?= $current_page === 'contact' ? ' class="active"' : '' ?>><a href="/contact">Contact</a></li>
+                <li<?= isset($current_page) && $current_page === 'home' ? ' class="active"' : '' ?>><a href="/">Accueil</a></li>
+                <li<?= isset($current_page) && $current_page === 'stages' ? ' class="active"' : '' ?>><a href="/stages">Stages</a></li>
+                <li<?= isset($current_page) && $current_page === 'entreprises' ? ' class="active"' : '' ?>><a href="/companies">Entreprises</a></li>
+                <li<?= isset($current_page) && $current_page === 'contact' ? ' class="active"' : '' ?>><a href="/contact">Contact</a></li>
             </ul>
             <div class="auth-buttons">
                 <?php if (isset($user)): ?>

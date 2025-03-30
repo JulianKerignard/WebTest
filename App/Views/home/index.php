@@ -3,6 +3,9 @@
 $title = 'Trouvez votre stage idéal';
 $current_page = 'home';
 ?>
+<link rel="stylesheet" href="/Asset/Css/main.css">
+<link rel="stylesheet" href="/Asset/Css/Style.css">
+<script src="/Asset/Js/scripts.js"></script>
 
 <section class="hero">
     <div class="container">

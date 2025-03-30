@@ -25,14 +25,14 @@ return [
         'from_name' => getenv('MAIL_FROM_NAME') ?: 'LeBonPlan',
     ],
     'security' => [
-        'session_lifetime' => 86400, // 24 hours
+        'session_lifetime' => 86400,
         'password_min_length' => 8,
         'max_login_attempts' => 5,
-        'lockout_time' => 900, // 15 minutes
+        'lockout_time' => 900,
     ],
     'uploads' => [
         'cv_path' => __DIR__ . '/../../storage/uploads/cv/',
-        'max_file_size' => 5 * 1024 * 1024, // 5MB
+        'max_file_size' => 5 * 1024 * 1024,
         'allowed_extensions' => ['pdf', 'doc', 'docx'],
     ],
 ];
