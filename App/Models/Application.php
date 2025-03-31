@@ -1,206 +1,409 @@
 ﻿<?php
-namespace App\Controllers;
+namespace App\Models;
 
+use App\Core\Database;
 use App\Core\App;
-use App\Core\Template;
-use App\Models\Application;
-use App\Models\Internship;
-use App\Models\Student;
-use App\Models\Company;
-use App\Helpers\FileHelper;
-use App\Helpers\SecurityHelper;
 
-class ApplicationController {
-    private $template;
-    private $applicationModel;
-    private $internshipModel;
-    private $studentModel;
-    private $companyModel;
+class Application {
+    private $db;
+
+    // Statuts possibles d'une candidature
+    const STATUS_PENDING = 'pending';
+    const STATUS_IN_REVIEW = 'in-review';
+    const STATUS_INTERVIEW = 'interview';
+    const STATUS_ACCEPTED = 'accepted';
+    const STATUS_REJECTED = 'rejected';
+
+    // Tableau des statuts disponibles pour l'affichage
+    public static $statusLabels = [
+        self::STATUS_PENDING => 'En attente',
+        self::STATUS_IN_REVIEW => 'En cours d\'examen',
+        self::STATUS_INTERVIEW => 'Entretien',
+        self::STATUS_ACCEPTED => 'Acceptée',
+        self::STATUS_REJECTED => 'Refusée'
+    ];
 
     public function __construct() {
-        $this->template = new Template();
-        $this->applicationModel = new Application();
-        $this->internshipModel = new Internship();
-        $this->studentModel = new Student();
-        $this->companyModel = new Company();
+        $this->db = Database::getInstance();
     }
 
     /**
-     * Afficher les candidatures de l'étudiant connecté
+     * Crée une nouvelle candidature
      */
-    public function index() {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user) {
-            $session->setFlash('error', 'Vous devez être connecté pour accéder à cette page');
-            return App::$app->response->redirect('/login');
+    public function create($studentId, $offerId, $coverLetter, $cvPath) {
+        // Vérifier si l'étudiant a déjà postulé à cette offre
+        if ($this->hasStudentApplied($studentId, $offerId)) {
+            return [
+                'success' => false,
+                'message' => 'Vous avez déjà postulé à cette offre'
+            ];
         }
 
-        // Récupérer les paramètres de pagination
-        $request = App::$app->request;
-        $page = (int)$request->get('page', 1);
-        $limit = 10;
-        $offset = ($page - 1) * $limit;
-
-        // Récupérer les candidatures selon le rôle
-        $applications = [];
-        $totalApplications = 0;
-
-        if ($user['role'] === 'student') {
-            $applications = $this->applicationModel->findByStudentId($user['id'], $limit, $offset);
-            // Compter le nombre total de candidatures pour la pagination
-            $stats = $this->applicationModel->getApplicationStatistics($user['id'], 'student');
-            $totalApplications = $stats['total'];
-
-            return $this->template->renderWithLayout('student/applications', 'dashboard', [
-                'applications' => $applications,
-                'stats' => $stats,
-                'pagination' => [
-                    'page' => $page,
-                    'total_pages' => ceil($totalApplications / $limit),
-                    'total_items' => $totalApplications
-                ],
-                'user' => $user
-            ]);
-        } elseif ($user['role'] === 'company') {
-            // Récupérer l'ID de l'entreprise associée à cet utilisateur
-            $company = $this->companyModel->findByAccountId($user['id']);
-
-            if (!$company) {
-                $session->setFlash('error', 'Aucune entreprise associée à votre compte');
-                return App::$app->response->redirect('/company/dashboard');
-            }
-
-            $applications = $this->applicationModel->findByCompanyId($company['ID_Company'], $limit, $offset);
-
-            // Statistiques de candidatures
-            $stats = $this->applicationModel->getApplicationStatistics($company['ID_Company'], 'company');
-            $totalApplications = $stats['total'];
-
-            return $this->template->renderWithLayout('company/applications', 'dashboard', [
-                'applications' => $applications,
-                'stats' => $stats,
-                'pagination' => [
-                    'page' => $page,
-                    'total_pages' => ceil($totalApplications / $limit),
-                    'total_items' => $totalApplications
-                ],
-                'user' => $user
-            ]);
-        } elseif ($user['role'] === 'admin' || $user['role'] === 'pilot') {
-            // Pour les administrateurs ou pilotes, afficher toutes les candidatures
-            $sql = "SELECT a.*, o.Offer_title, c.Name as company_name
-                  FROM applications a 
-                  JOIN Offers o ON a.offer_id = o.ID_Offer
-                  JOIN Company c ON o.ID_Company = c.ID_Company
-                  ORDER BY a.created_at DESC LIMIT ?, ?";
-            $applications = App::$app->db->fetchAll($sql, [$offset, $limit]);
-
-            $totalSql = "SELECT COUNT(*) as count FROM applications";
-            $totalApplications = App::$app->db->fetch($totalSql)['count'];
-
-            return $this->template->renderWithLayout('admin/applications/index', 'dashboard', [
-                'applications' => $applications,
-                'pagination' => [
-                    'page' => $page,
-                    'total_pages' => ceil($totalApplications / $limit),
-                    'total_items' => $totalApplications
-                ],
-                'user' => $user
-            ]);
-        }
-
-        $session->setFlash('error', 'Accès non autorisé');
-        return App::$app->response->redirect('/');
-    }
-
-    /**
-     * Afficher les détails d'une candidature
-     */
-    public function show($id) {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user) {
-            $session->setFlash('error', 'Vous devez être connecté pour accéder à cette page');
-            return App::$app->response->redirect('/login');
-        }
-
-        // Récupérer la candidature avec toutes les informations nécessaires
-        $application = $this->applicationModel->findById($id);
-
-        // Vérification critique : rediriger si l'application n'existe pas
-        if (!$application) {
-            $session->setFlash('error', 'Candidature non trouvée');
-            return App::$app->response->redirect('/applications');
-        }
-
-        // Vérifier les permissions
-        $hasAccess = false;
-
-        if ($user['role'] === 'student' && $application['student_id'] == $user['id']) {
-            $hasAccess = true;
-            $viewTemplate = 'student/application-details';
-        } elseif ($user['role'] === 'company') {
-            // Vérifier si cette candidature concerne une offre de cette entreprise
-            $company = $this->companyModel->findByAccountId($user['id']);
-            if ($company && $application['company_id'] == $company['ID_Company']) {
-                $hasAccess = true;
-                $viewTemplate = 'company/application-details';
-            }
-        } elseif ($user['role'] === 'admin' || $user['role'] === 'pilot') {
-            $hasAccess = true;
-            $viewTemplate = 'admin/applications/show';
-        }
-
-        if (!$hasAccess) {
-            $session->setFlash('error', 'Vous n\'êtes pas autorisé à accéder à cette candidature');
-            return App::$app->response->redirect('/applications');
-        }
-
-        // Ajouter les données formatées nécessaires à l'affichage
-        $this->prepareApplicationData($application);
-
-        return $this->template->renderWithLayout($viewTemplate, 'dashboard', [
-            'application' => $application,
-            'status_options' => Application::$statusLabels,
-            'user' => $user,
-            'csrf_token' => SecurityHelper::generateCSRFToken()
+        $applicationId = $this->db->insert('applications', [
+            'student_id' => $studentId,
+            'offer_id' => $offerId,
+            'cover_letter' => $coverLetter,
+            'cv_path' => $cvPath,
+            'status' => self::STATUS_PENDING,
+            'created_at' => date('Y-m-d H:i:s')
         ]);
+
+        if ($applicationId) {
+            $this->db->insert('application_status_history', [
+                'application_id' => $applicationId,
+                'status' => self::STATUS_PENDING,
+                'comment' => 'Candidature créée',
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            return [
+                'success' => true,
+                'id' => $applicationId,
+                'message' => 'Candidature envoyée avec succès'
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Erreur lors de l\'envoi de la candidature'
+        ];
     }
 
     /**
-     * Prépare les données de candidature pour l'affichage
+     * Récupère les candidatures d'un étudiant
      */
-    private function prepareApplicationData(&$application) {
-        // Générer le chemin du CV s'il existe
-        if (!empty($application['cv_path'])) {
-            $application['cv_url'] = '/uploads/cv/' . $application['cv_path'];
+    public function findByStudentId($studentId, $limit = null, $offset = 0) {
+        $sql = "
+            SELECT a.*, o.Offer_title, o.Description as offer_description, 
+                c.Name as company_name, o.location
+            FROM applications a
+            JOIN Offers o ON a.offer_id = o.ID_Offer
+            JOIN Company c ON o.ID_Company = c.ID_Company
+            WHERE a.student_id = ?
+            ORDER BY a.created_at DESC
+        ";
+
+        $params = [$studentId];
+
+        if ($limit !== null) {
+            $sql .= " LIMIT ? OFFSET ?";
+            $params[] = $limit;
+            $params[] = $offset;
         }
 
-        // Formater la date d'entretien si elle existe
-        if (!empty($application['interview_date'])) {
-            $application['interview_date_formatted'] = date('d/m/Y H:i', strtotime($application['interview_date']));
+        $applications = $this->db->fetchAll($sql, $params);
+
+        // Ajouter les labels pour les statuts
+        foreach ($applications as &$application) {
+            $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
+            $application['time_ago'] = $this->getTimeAgo($application['created_at']);
         }
 
-        // Récupérer l'historique des statuts s'il n'est pas déjà présent
-        if (!isset($application['status_history'])) {
-            $application['status_history'] = $this->applicationModel->getApplicationHistory($application['id']);
+        return $applications;
+    }
+
+    /**
+     * Récupère les candidatures pour une entreprise
+     */
+    public function findByCompanyId($companyId, $limit = null, $offset = 0) {
+        $sql = "
+            SELECT a.*, o.Offer_title, o.Description as offer_description, 
+                o.ID_Company as company_id, 
+                s.ID_account as student_id, acc.Username as student_name
+            FROM applications a
+            JOIN Offers o ON a.offer_id = o.ID_Offer
+            JOIN Student s ON a.student_id = s.ID_account
+            JOIN Account acc ON s.ID_account = acc.ID_account
+            WHERE o.ID_Company = ?
+            ORDER BY a.created_at DESC
+        ";
+
+        $params = [$companyId];
+
+        if ($limit !== null) {
+            $sql .= " LIMIT ? OFFSET ?";
+            $params[] = $limit;
+            $params[] = $offset;
         }
 
-        // Ajouter les libellés des statuts pour l'historique
-        if (isset($application['status_history']) && is_array($application['status_history'])) {
-            foreach ($application['status_history'] as &$history) {
-                $history['status_label'] = Application::$statusLabels[$history['status']] ?? 'Inconnu';
-                $history['time_ago'] = $this->getTimeAgo($history['created_at']);
+        $applications = $this->db->fetchAll($sql, $params);
+
+        // Ajouter les labels pour les statuts
+        foreach ($applications as &$application) {
+            $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
+            $application['time_ago'] = $this->getTimeAgo($application['created_at']);
+        }
+
+        return $applications;
+    }
+
+    /**
+     * Récupère une candidature par son ID avec toutes les informations associées
+     * Version avec débogage pour identifier les problèmes
+     */
+    public function findById($id) {
+        // Première requête pour vérifier si l'application existe
+        try {
+            $baseApplication = $this->db->fetch("SELECT * FROM applications WHERE id = ?", [$id]);
+
+            if (!$baseApplication) {
+                // Journaliser l'échec
+                if (isset(App::$app->logger)) {
+                    App::$app->logger->logError("Application introuvable avec l'ID {$id}");
+                }
+                return null;
+            }
+
+            // Si l'application existe, récupérer l'offre associée
+            $offer = $this->db->fetch("SELECT * FROM Offers WHERE ID_Offer = ?", [$baseApplication['offer_id']]);
+            if (!$offer) {
+                // Journaliser l'échec
+                if (isset(App::$app->logger)) {
+                    App::$app->logger->logError("Offre introuvable pour l'application ID {$id}, offer_id {$baseApplication['offer_id']}");
+                }
+                // Retourner uniquement les données de base sans les relations
+                $baseApplication['status_label'] = self::$statusLabels[$baseApplication['status']] ?? 'Inconnu';
+                return $baseApplication;
+            }
+
+            // Si l'offre existe, récupérer l'entreprise associée
+            $company = $this->db->fetch("SELECT * FROM Company WHERE ID_Company = ?", [$offer['ID_Company']]);
+            if (!$company) {
+                // Journaliser l'échec
+                if (isset(App::$app->logger)) {
+                    App::$app->logger->logError("Entreprise introuvable pour l'offre ID {$offer['ID_Offer']}, company_id {$offer['ID_Company']}");
+                }
+            }
+
+            // Récupérer les informations de l'étudiant et du compte
+            $student = $this->db->fetch("SELECT * FROM Student WHERE ID_account = ?", [$baseApplication['student_id']]);
+            $account = $this->db->fetch("SELECT * FROM Account WHERE ID_account = ?", [$baseApplication['student_id']]);
+
+            // Construire l'objet application complet
+            $application = $baseApplication;
+
+            // Ajouter les informations de l'offre
+            if ($offer) {
+                $application['Offer_title'] = $offer['Offer_title'];
+                $application['offer_description'] = $offer['Description'];
+                $application['location'] = $offer['location'];
+                $application['internship_duration'] = $offer['internship_duration'];
+                $application['monthly_remuneration'] = $offer['monthly_remuneration'];
+                $application['Starting_internship_date'] = $offer['Starting_internship_date'];
+                $application['company_id'] = $offer['ID_Company'];
+            }
+
+            // Ajouter les informations de l'entreprise
+            if ($company) {
+                $application['company_name'] = $company['Name'];
+            }
+
+            // Ajouter les informations du compte et de l'étudiant
+            if ($account) {
+                $application['student_name'] = $account['Username'];
+                $application['student_email'] = $account['Email'];
+            }
+
+            if ($student) {
+                $application['school_name'] = $student['school_name'];
+                $application['study_field'] = $student['study_field'];
+            }
+
+            // Ajouter le libellé du statut
+            $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
+
+            // Récupérer l'historique des statuts
+            $application['status_history'] = $this->getApplicationHistory($id);
+
+            // Récupérer les notes internes
+            $application['notes'] = $this->getApplicationNotes($id);
+
+            return $application;
+
+        } catch (\Exception $e) {
+            // Journaliser l'erreur
+            if (isset(App::$app->logger)) {
+                App::$app->logger->logError("Erreur dans findById: " . $e->getMessage());
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Récupère l'historique des statuts d'une candidature
+     */
+    public function getApplicationHistory($applicationId) {
+        try {
+            $history = $this->db->fetchAll("
+                SELECT * FROM application_status_history 
+                WHERE application_id = ? 
+                ORDER BY created_at DESC
+            ", [$applicationId]);
+
+            // Ajouter les libellés des statuts
+            foreach ($history as &$entry) {
+                $entry['status_label'] = self::$statusLabels[$entry['status']] ?? 'Inconnu';
+                $entry['time_ago'] = $this->getTimeAgo($entry['created_at']);
+            }
+
+            return $history;
+        } catch (\Exception $e) {
+            // En cas d'erreur, retourner un tableau vide
+            if (isset(App::$app->logger)) {
+                App::$app->logger->logError("Erreur dans getApplicationHistory: " . $e->getMessage());
+            }
+            return [];
+        }
+    }
+
+    /**
+     * Récupère les notes internes d'une candidature
+     */
+    public function getApplicationNotes($applicationId) {
+        try {
+            return $this->db->fetchAll("
+                SELECT n.*, a.Username as author_name
+                FROM application_notes n
+                JOIN Account a ON n.user_id = a.ID_account
+                WHERE n.application_id = ?
+                ORDER BY n.created_at DESC
+            ", [$applicationId]);
+        } catch (\Exception $e) {
+            // En cas d'erreur, retourner un tableau vide
+            if (isset(App::$app->logger)) {
+                App::$app->logger->logError("Erreur dans getApplicationNotes: " . $e->getMessage());
+            }
+            return [];
+        }
+    }
+
+    /**
+     * Met à jour le statut d'une candidature
+     */
+    public function updateStatus($applicationId, $status, $feedback = null) {
+        $data = [
+            'status' => $status,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        if ($feedback) {
+            $data['feedback'] = $feedback;
+        }
+
+        // Gérer le cas de l'entretien
+        if ($status === self::STATUS_INTERVIEW && isset($_POST['interview_date'])) {
+            $data['interview_date'] = $_POST['interview_date'];
+        }
+
+        $result = $this->db->update('applications', $data, 'id = ?', [$applicationId]);
+
+        if ($result) {
+            // Ajouter un historique de statut
+            $this->db->insert('application_status_history', [
+                'application_id' => $applicationId,
+                'status' => $status,
+                'comment' => $feedback,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Statut de la candidature mis à jour avec succès'
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Erreur lors de la mise à jour du statut'
+        ];
+    }
+
+    /**
+     * Vérifie si un étudiant a déjà postulé à une offre
+     */
+    public function hasStudentApplied($studentId, $offerId) {
+        $result = $this->db->fetch("
+            SELECT COUNT(*) as count
+            FROM applications
+            WHERE student_id = ? AND offer_id = ?
+        ", [$studentId, $offerId]);
+
+        return $result['count'] > 0;
+    }
+
+    /**
+     * Ajoute une note interne à une candidature
+     */
+    public function addNote($applicationId, $userId, $content) {
+        $result = $this->db->insert('application_notes', [
+            'application_id' => $applicationId,
+            'user_id' => $userId,
+            'content' => $content,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+
+        if ($result) {
+            return [
+                'success' => true,
+                'message' => 'Note ajoutée avec succès',
+                'notes' => $this->getApplicationNotes($applicationId)
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Erreur lors de l\'ajout de la note'
+        ];
+    }
+
+    /**
+     * Récupère des statistiques de candidatures pour un étudiant ou une entreprise
+     */
+    public function getApplicationStatistics($id, $type = 'student') {
+        $stats = [];
+
+        try {
+            // Pour le cas d'une entreprise, on a besoin d'une jointure
+            $whereClause = $type === 'student'
+                ? "a.student_id = ?"
+                : "o.ID_Company = ?";
+
+            $fromClause = $type === 'student'
+                ? "FROM applications a"
+                : "FROM applications a JOIN Offers o ON a.offer_id = o.ID_Offer";
+
+            // Total des candidatures
+            $sql = "SELECT COUNT(*) as count {$fromClause} WHERE {$whereClause}";
+            $result = $this->db->fetch($sql, [$id]);
+            $stats['total'] = $result['count'] ?? 0;
+
+            // Par statut
+            foreach (self::$statusLabels as $status => $label) {
+                $sql = "SELECT COUNT(*) as count {$fromClause} WHERE {$whereClause} AND a.status = ?";
+                $result = $this->db->fetch($sql, [$id, $status]);
+                $stats[$status] = $result['count'] ?? 0;
+            }
+
+            // Pour les étudiants, ajouter les stages dans la wishlist
+            if ($type === 'student') {
+                $sql = "SELECT COUNT(*) as count FROM wishlist WHERE student_id = ?";
+                $result = $this->db->fetch($sql, [$id]);
+                $stats['wishlist'] = $result['count'] ?? 0;
+            }
+        } catch (\Exception $e) {
+            // En cas d'erreur, initialiser les statistiques de base
+            $stats['total'] = 0;
+            foreach (self::$statusLabels as $status => $label) {
+                $stats[$status] = 0;
+            }
+            $stats['wishlist'] = 0;
+
+            if (isset(App::$app->logger)) {
+                App::$app->logger->logError("Erreur dans getApplicationStatistics: " . $e->getMessage());
             }
         }
 
-        // Récupérer les notes sur la candidature si elles ne sont pas déjà présentes
-        if (!isset($application['notes'])) {
-            $application['notes'] = $this->applicationModel->getApplicationNotes($application['id']);
-        }
+        return $stats;
     }
 
     /**
@@ -232,283 +435,5 @@ class ApplicationController {
             $years = floor($diff / 31536000);
             return "il y a " . $years . " an" . ($years > 1 ? "s" : "");
         }
-    }
-
-    /**
-     * Créer une nouvelle candidature
-     */
-    public function apply() {
-        $request = App::$app->request;
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || $user['role'] !== 'student') {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Vous devez être connecté en tant qu\'étudiant pour postuler'
-            ], 403);
-        }
-
-        $data = $request->getBody();
-        $offerId = $data['offer_id'] ?? null;
-        $coverLetter = $data['cover_letter'] ?? null;
-
-        if (!$offerId || !$coverLetter) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'L\'identifiant de l\'offre et la lettre de motivation sont obligatoires'
-            ], 400);
-        }
-
-        // Vérifier si l'offre existe
-        $internship = $this->internshipModel->findById($offerId);
-        if (!$internship) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Stage non trouvé'
-            ], 404);
-        }
-
-        // Vérifier si l'étudiant a déjà postulé
-        if ($this->applicationModel->hasStudentApplied($user['id'], $offerId)) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Vous avez déjà postulé à cette offre'
-            ], 400);
-        }
-
-        // Gérer l'upload du CV
-        $cvPath = null;
-        $cvFile = $request->getFile('cv');
-
-        if ($cvFile && $cvFile['error'] === UPLOAD_ERR_OK) {
-            $result = FileHelper::uploadFile($cvFile, 'cv');
-            if ($result['success']) {
-                $cvPath = $result['filename'];
-
-                // Mettre à jour le CV de l'étudiant
-                $this->studentModel->update($user['id'], [
-                    'CV' => $cvPath
-                ]);
-            } else {
-                return App::$app->response->json([
-                    'success' => false,
-                    'message' => $result['error']
-                ], 400);
-            }
-        } else {
-            // Utiliser le CV existant de l'étudiant
-            $student = $this->studentModel->findById($user['id']);
-            $cvPath = $student['CV'] ?? null;
-        }
-
-        if (!$cvPath) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Vous devez télécharger un CV pour postuler'
-            ], 400);
-        }
-
-        // Créer la candidature
-        $result = $this->applicationModel->create($user['id'], $offerId, $coverLetter, $cvPath);
-
-        if ($result['success']) {
-            return App::$app->response->json([
-                'success' => true,
-                'message' => 'Votre candidature a été envoyée avec succès',
-                'id' => $result['id']
-            ]);
-        } else {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => $result['message']
-            ], 500);
-        }
-    }
-
-    /**
-     * Mettre à jour le statut d'une candidature
-     */
-    public function updateStatus() {
-        $request = App::$app->request;
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot' && $user['role'] !== 'company')) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Accès non autorisé'
-            ], 403);
-        }
-
-        $applicationId = $request->get('application_id');
-        $status = $request->get('status');
-        $feedback = $request->get('feedback');
-
-        if (!$applicationId || !$status) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'L\'identifiant de la candidature et le statut sont obligatoires'
-            ], 400);
-        }
-
-        // Vérifier si la candidature existe
-        $application = $this->applicationModel->findById($applicationId);
-        if (!$application) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Candidature non trouvée'
-            ], 404);
-        }
-
-        // Vérifier les permissions pour les entreprises
-        if ($user['role'] === 'company') {
-            $company = $this->companyModel->findByAccountId($user['id']);
-            if (!$company || $application['company_id'] != $company['ID_Company']) {
-                return App::$app->response->json([
-                    'success' => false,
-                    'message' => 'Vous n\'êtes pas autorisé à modifier cette candidature'
-                ], 403);
-            }
-        }
-
-        // Mettre à jour le statut
-        $result = $this->applicationModel->updateStatus($applicationId, $status, $feedback);
-
-        if ($result['success']) {
-            return App::$app->response->json([
-                'success' => true,
-                'message' => 'Statut de la candidature mis à jour avec succès'
-            ]);
-        } else {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => $result['message']
-            ], 500);
-        }
-    }
-
-    /**
-     * Ajouter une note à une candidature
-     */
-    public function addNote() {
-        $request = App::$app->request;
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot' && $user['role'] !== 'company')) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Accès non autorisé'
-            ], 403);
-        }
-
-        $applicationId = $request->get('application_id');
-        $content = $request->get('note');
-
-        if (!$applicationId || !$content) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'L\'identifiant de la candidature et le contenu sont obligatoires'
-            ], 400);
-        }
-
-        // Vérifier si la candidature existe
-        $application = $this->applicationModel->findById($applicationId);
-        if (!$application) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Candidature non trouvée'
-            ], 404);
-        }
-
-        // Vérifier les permissions pour les entreprises
-        if ($user['role'] === 'company') {
-            $company = $this->companyModel->findByAccountId($user['id']);
-            if (!$company || $application['company_id'] != $company['ID_Company']) {
-                return App::$app->response->json([
-                    'success' => false,
-                    'message' => 'Vous n\'êtes pas autorisé à ajouter une note à cette candidature'
-                ], 403);
-            }
-        }
-
-        // Ajouter la note
-        $result = $this->applicationModel->addNote($applicationId, $user['id'], $content);
-
-        if ($result['success']) {
-            return App::$app->response->json([
-                'success' => true,
-                'message' => 'Note ajoutée avec succès',
-                'notes' => $result['notes']
-            ]);
-        } else {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => $result['message']
-            ], 500);
-        }
-    }
-
-    /**
-     * Télécharger le CV d'une candidature
-     */
-    public function downloadCV($id) {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user) {
-            $session->setFlash('error', 'Vous devez être connecté pour accéder à cette page');
-            return App::$app->response->redirect('/login');
-        }
-
-        // Récupérer la candidature
-        $application = $this->applicationModel->findById($id);
-
-        if (!$application) {
-            $session->setFlash('error', 'Candidature non trouvée');
-            return App::$app->response->redirect('/applications');
-        }
-
-        // Vérifier les permissions
-        $hasAccess = false;
-
-        if ($user['role'] === 'student' && $application['student_id'] == $user['id']) {
-            $hasAccess = true;
-        } elseif ($user['role'] === 'company') {
-            $company = $this->companyModel->findByAccountId($user['id']);
-            if ($company && $application['company_id'] == $company['ID_Company']) {
-                $hasAccess = true;
-            }
-        } elseif ($user['role'] === 'admin' || $user['role'] === 'pilot') {
-            $hasAccess = true;
-        }
-
-        if (!$hasAccess) {
-            $session->setFlash('error', 'Vous n\'êtes pas autorisé à accéder à ce CV');
-            return App::$app->response->redirect('/applications');
-        }
-
-        // Vérifier si le CV existe
-        if (empty($application['cv_path'])) {
-            $session->setFlash('error', 'CV non disponible');
-            return App::$app->response->redirect('/applications/' . $id);
-        }
-
-        // Chemin du fichier
-        $filePath = __DIR__ . '/../../storage/uploads/cv/' . $application['cv_path'];
-
-        if (!file_exists($filePath)) {
-            $session->setFlash('error', 'Fichier non trouvé');
-            return App::$app->response->redirect('/applications/' . $id);
-        }
-
-        // Envoyer le fichier
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="CV_' . $application['student_name'] . '.pdf"');
-        header('Content-Length: ' . filesize($filePath));
-
-        readfile($filePath);
-        exit;
     }
 }

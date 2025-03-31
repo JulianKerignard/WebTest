@@ -1,248 +1,184 @@
 ﻿<?php
-// Test de la base de données pour LeBonPlan
+// db_check.php - Placez ce fichier à la racine de votre projet
 
-// Charge la configuration de base de données
-$config = require __DIR__ . '/App/Config/config.php';
-$dbConfig = $config['database'];
+require_once __DIR__ . '/vendor/autoload.php';
 
-echo '<h1>Test de connexion à la base de données LeBonPlan</h1>';
-echo '<style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-    tr:nth-child(even) { background-color: #f9f9f9; }
-    .success { color: green; }
-    .error { color: red; }
-    h2 { margin-top: 30px; }
-</style>';
+use App\Core\Database;
+use App\Core\Logger;
 
-// Test de connexion à la base de données
+// Activer l'affichage des erreurs pour le débogage
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+echo "<h1>Vérification de la base de données</h1>";
+
+// Connexion à la base de données
 try {
-    $dsn = "mysql:host={$dbConfig['host']};dbname={$dbConfig['database']};charset={$dbConfig['charset']}";
-    $pdo = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
-
-    echo '<p class="success">✅ Connexion à la base de données réussie!</p>';
-    echo '<p>Configuration utilisée:</p>';
-    echo '<ul>';
-    echo '<li>Hôte: ' . $dbConfig['host'] . '</li>';
-    echo '<li>Base de données: ' . $dbConfig['database'] . '</li>';
-    echo '<li>Utilisateur: ' . $dbConfig['username'] . '</li>';
-    echo '</ul>';
-
-    // Test des tables principales
-    $tables = [
-        'Account' => 'SELECT COUNT(*) as count, _Rank, COUNT(DISTINCT Email) as unique_emails FROM Account GROUP BY _Rank',
-        'Student' => 'SELECT COUNT(*) as count FROM Student',
-        'Company' => 'SELECT COUNT(*) as count FROM Company',
-        'Offers' => 'SELECT COUNT(*) as count, status FROM Offers GROUP BY status',
-        'applications' => 'SELECT COUNT(*) as count, status FROM applications GROUP BY status',
-        'wishlist' => 'SELECT COUNT(*) as count FROM wishlist',
-    ];
-
-    echo '<h2>Vérification des tables principales</h2>';
-
-    foreach ($tables as $table => $query) {
-        echo "<h3>Table: {$table}</h3>";
-        try {
-            $stmt = $pdo->query($query);
-            $results = $stmt->fetchAll();
-
-            if (empty($results)) {
-                echo "<p>Aucune donnée trouvée dans la table {$table}</p>";
-            } else {
-                echo '<table>';
-                // En-têtes de colonnes
-                echo '<tr>';
-                foreach (array_keys($results[0]) as $column) {
-                    echo "<th>{$column}</th>";
-                }
-                echo '</tr>';
-
-                // Données des lignes
-                foreach ($results as $row) {
-                    echo '<tr>';
-                    foreach ($row as $value) {
-                        echo "<td>{$value}</td>";
-                    }
-                    echo '</tr>';
-                }
-                echo '</table>';
-            }
-        } catch (PDOException $e) {
-            echo '<p class="error">❌ Erreur lors de la requête sur la table ' . $table . ': ' . $e->getMessage() . '</p>';
-        }
+    $db = Database::getInstance();
+    if ($db->isConnected()) {
+        echo "<p style='color:green'>✅ Connexion à la base de données réussie!</p>";
+    } else {
+        echo "<p style='color:red'>❌ Erreur de connexion: " . $db->getLastError() . "</p>";
+        exit;
     }
-
-    // Test des relations entre tables
-    echo '<h2>Tests des relations entre tables</h2>';
-
-    // 1. Offres de stage avec détails des entreprises
-    echo '<h3>Offres de stage avec détails des entreprises</h3>';
-    try {
-        $stmt = $pdo->query("
-            SELECT o.ID_Offer, o.Offer_title, o.Date_of_publication, 
-                   c.Name as company_name, c.Size as company_size
-            FROM Offers o
-            JOIN Company c ON o.ID_Company = c.ID_Company
-            ORDER BY o.Date_of_publication DESC
-            LIMIT 5
-        ");
-        $internships = $stmt->fetchAll();
-
-        if (empty($internships)) {
-            echo "<p>Aucune offre de stage trouvée</p>";
-        } else {
-            echo '<table>';
-            echo '<tr>';
-            foreach (array_keys($internships[0]) as $column) {
-                echo "<th>{$column}</th>";
-            }
-            echo '</tr>';
-
-            foreach ($internships as $internship) {
-                echo '<tr>';
-                foreach ($internship as $value) {
-                    echo "<td>{$value}</td>";
-                }
-                echo '</tr>';
-            }
-            echo '</table>';
-        }
-    } catch (PDOException $e) {
-        echo '<p class="error">❌ Erreur lors de la requête sur les offres: ' . $e->getMessage() . '</p>';
-    }
-
-    // 2. Candidatures avec détails des étudiants et offres
-    echo '<h3>Candidatures avec détails des étudiants et offres</h3>';
-    try {
-        $stmt = $pdo->query("
-            SELECT a.id, a.status, a.created_at,
-                   acc.Username as student_name,
-                   o.Offer_title,
-                   c.Name as company_name
-            FROM applications a
-            JOIN Student s ON a.student_id = s.ID_account
-            JOIN Account acc ON s.ID_account = acc.ID_account
-            JOIN Offers o ON a.offer_id = o.ID_Offer
-            JOIN Company c ON o.ID_Company = c.ID_Company
-            ORDER BY a.created_at DESC
-            LIMIT 5
-        ");
-        $applications = $stmt->fetchAll();
-
-        if (empty($applications)) {
-            echo "<p>Aucune candidature trouvée</p>";
-        } else {
-            echo '<table>';
-            echo '<tr>';
-            foreach (array_keys($applications[0]) as $column) {
-                echo "<th>{$column}</th>";
-            }
-            echo '</tr>';
-
-            foreach ($applications as $application) {
-                echo '<tr>';
-                foreach ($application as $value) {
-                    echo "<td>{$value}</td>";
-                }
-                echo '</tr>';
-            }
-            echo '</table>';
-        }
-    } catch (PDOException $e) {
-        echo '<p class="error">❌ Erreur lors de la requête sur les candidatures: ' . $e->getMessage() . '</p>';
-    }
-
-    // 3. Wishlist avec les détails des offres
-    echo '<h3>Stages en wishlist par étudiant</h3>';
-    try {
-        $stmt = $pdo->query("
-            SELECT w.student_id, acc.Username as student_name, 
-                   COUNT(w.offer_id) as offers_count,
-                   GROUP_CONCAT(o.Offer_title SEPARATOR ', ') as offers
-            FROM wishlist w
-            JOIN Account acc ON w.student_id = acc.ID_account
-            JOIN Offers o ON w.offer_id = o.ID_Offer
-            GROUP BY w.student_id
-        ");
-        $wishlists = $stmt->fetchAll();
-
-        if (empty($wishlists)) {
-            echo "<p>Aucune wishlist trouvée</p>";
-        } else {
-            echo '<table>';
-            echo '<tr>';
-            foreach (array_keys($wishlists[0]) as $column) {
-                echo "<th>{$column}</th>";
-            }
-            echo '</tr>';
-
-            foreach ($wishlists as $wish) {
-                echo '<tr>';
-                foreach ($wish as $value) {
-                    echo "<td>{$value}</td>";
-                }
-                echo '</tr>';
-            }
-            echo '</table>';
-        }
-    } catch (PDOException $e) {
-        echo '<p class="error">❌ Erreur lors de la requête sur les wishlists: ' . $e->getMessage() . '</p>';
-    }
-
-    // 4. Test de la requête pour les stages populaires (comme dans HomeController)
-    echo '<h3>Test de la requête pour les stages populaires</h3>';
-    try {
-        $stmt = $pdo->query("
-            SELECT o.*, c.Name as company_name, c.Logo as company_logo, c.Size as company_size,
-                   o.location, o.monthly_remuneration,
-                   (SELECT COUNT(*) FROM applications a WHERE a.offer_id = o.ID_Offer) as application_count,
-                   (SELECT COUNT(*) FROM wishlist w WHERE w.offer_id = o.ID_Offer) as wishlist_count
-            FROM Offers o
-            JOIN Company c ON o.ID_Company = c.ID_Company
-            WHERE o.status = 'active'
-            ORDER BY application_count DESC, wishlist_count DESC, o.Date_of_publication DESC
-            LIMIT 6
-        ");
-        $popularInternships = $stmt->fetchAll();
-
-        if (empty($popularInternships)) {
-            echo "<p>Aucun stage populaire trouvé</p>";
-        } else {
-            echo '<table>';
-            echo '<tr>';
-            echo "<th>ID</th>";
-            echo "<th>Titre</th>";
-            echo "<th>Entreprise</th>";
-            echo "<th>Lieu</th>";
-            echo "<th>Date de publication</th>";
-            echo "<th>Candidatures</th>";
-            echo "<th>Wishlists</th>";
-            echo '</tr>';
-
-            foreach ($popularInternships as $internship) {
-                echo '<tr>';
-                echo "<td>{$internship['ID_Offer']}</td>";
-                echo "<td>{$internship['Offer_title']}</td>";
-                echo "<td>{$internship['company_name']}</td>";
-                echo "<td>{$internship['location']}</td>";
-                echo "<td>{$internship['Date_of_publication']}</td>";
-                echo "<td>{$internship['application_count']}</td>";
-                echo "<td>{$internship['wishlist_count']}</td>";
-                echo '</tr>';
-            }
-            echo '</table>';
-        }
-    } catch (PDOException $e) {
-        echo '<p class="error">❌ Erreur lors de la requête sur les stages populaires: ' . $e->getMessage() . '</p>';
-    }
-
-} catch (PDOException $e) {
-    echo '<p class="error">❌ Erreur de connexion à la base de données: ' . $e->getMessage() . '</p>';
+} catch (\Exception $e) {
+    echo "<p style='color:red'>❌ Exception lors de la connexion: " . $e->getMessage() . "</p>";
+    exit;
 }
-?>
+
+// Vérification des tables nécessaires
+$tables = [
+    'applications' => "
+        CREATE TABLE IF NOT EXISTS applications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            student_id INT NOT NULL,
+            offer_id INT NOT NULL,
+            cover_letter TEXT NOT NULL,
+            cv_path VARCHAR(255) NOT NULL,
+            status ENUM('pending', 'in-review', 'interview', 'accepted', 'rejected') NOT NULL DEFAULT 'pending',
+            feedback TEXT NULL,
+            interview_date DATETIME NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL,
+            FOREIGN KEY (student_id) REFERENCES Student(ID_account) ON DELETE CASCADE,
+            FOREIGN KEY (offer_id) REFERENCES Offers(ID_Offer) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ",
+
+    'application_status_history' => "
+        CREATE TABLE IF NOT EXISTS application_status_history (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            application_id INT NOT NULL,
+            status ENUM('pending', 'in-review', 'interview', 'accepted', 'rejected') NOT NULL,
+            comment TEXT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ",
+
+    'application_notes' => "
+        CREATE TABLE IF NOT EXISTS application_notes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            application_id INT NOT NULL,
+            user_id INT NOT NULL,
+            content TEXT NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES Account(ID_account) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    "
+];
+
+foreach ($tables as $tableName => $createStatement) {
+    try {
+        // Vérifier si la table existe
+        $result = $db->fetch("SHOW TABLES LIKE '{$tableName}'");
+
+        if ($result) {
+            echo "<p>Table <strong>{$tableName}</strong>: ✅ Existe</p>";
+
+            // Afficher le nombre d'enregistrements
+            $count = $db->fetch("SELECT COUNT(*) as count FROM {$tableName}");
+            echo "<p style='margin-left:20px;'>Nombre d'enregistrements: " . $count['count'] . "</p>";
+
+            // Afficher la structure
+            echo "<details style='margin-left:20px;'>";
+            echo "<summary>Structure de la table</summary>";
+            echo "<pre>";
+            $columns = $db->fetchAll("SHOW COLUMNS FROM {$tableName}");
+            print_r($columns);
+            echo "</pre>";
+            echo "</details>";
+        } else {
+            echo "<p>Table <strong>{$tableName}</strong>: ❌ N'existe pas</p>";
+
+            // Créer la table
+            $db->query($createStatement);
+            echo "<p style='margin-left:20px;color:green'>✅ Table créée avec succès!</p>";
+        }
+    } catch (\Exception $e) {
+        echo "<p style='color:red'>❌ Erreur lors de la vérification/création de la table {$tableName}: " . $e->getMessage() . "</p>";
+    }
+}
+
+// Vérifier les données de test
+echo "<h2>Vérification des données de test</h2>";
+
+$tablesWithData = [
+    'Account' => "SELECT * FROM Account LIMIT 5",
+    'Student' => "SELECT * FROM Student LIMIT 5",
+    'Offers' => "SELECT * FROM Offers LIMIT 5",
+    'Company' => "SELECT * FROM Company LIMIT 5",
+    'applications' => "SELECT * FROM applications LIMIT 5"
+];
+
+foreach ($tablesWithData as $tableName => $query) {
+    try {
+        $data = $db->fetchAll($query);
+
+        echo "<details>";
+        echo "<summary>Données de <strong>{$tableName}</strong> (" . count($data) . " enregistrements)</summary>";
+        echo "<pre>";
+        print_r($data);
+        echo "</pre>";
+        echo "</details>";
+
+    } catch (\Exception $e) {
+        echo "<p style='color:red'>❌ Erreur lors de la récupération des données de {$tableName}: " . $e->getMessage() . "</p>";
+    }
+}
+
+// Créer des données de test si nécessaire
+echo "<h2>Création de données de test</h2>";
+
+// Vérifier s'il y a des applications
+$appCount = $db->fetch("SELECT COUNT(*) as count FROM applications")['count'];
+
+if ($appCount == 0) {
+    echo "<p>Aucune candidature dans la base de données. Création de données de test...</p>";
+
+    try {
+        // Vérifier s'il y a des étudiants et des offres
+        $studentCount = $db->fetch("SELECT COUNT(*) as count FROM Student")['count'];
+        $offerCount = $db->fetch("SELECT COUNT(*) as count FROM Offers")['count'];
+
+        if ($studentCount > 0 && $offerCount > 0) {
+            $student = $db->fetch("SELECT ID_account FROM Student LIMIT 1");
+            $offer = $db->fetch("SELECT ID_Offer FROM Offers LIMIT 1");
+
+            if ($student && $offer) {
+                // Créer une application de test
+                $appId = $db->insert('applications', [
+                    'student_id' => $student['ID_account'],
+                    'offer_id' => $offer['ID_Offer'],
+                    'cover_letter' => 'Lettre de motivation de test pour le débogage.',
+                    'cv_path' => 'test_cv.pdf',
+                    'status' => 'pending',
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+
+                if ($appId) {
+                    // Ajouter un historique de statut
+                    $db->insert('application_status_history', [
+                        'application_id' => $appId,
+                        'status' => 'pending',
+                        'comment' => 'Candidature créée pour le test',
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
+
+                    echo "<p style='color:green'>✅ Candidature de test créée avec ID: {$appId}</p>";
+                }
+            } else {
+                echo "<p style='color:orange'>⚠️ Impossible de créer une candidature de test: étudiant ou offre introuvable</p>";
+            }
+        } else {
+            echo "<p style='color:orange'>⚠️ Impossible de créer une candidature de test: pas assez d'étudiants ({$studentCount}) ou d'offres ({$offerCount})</p>";
+        }
+
+    } catch (\Exception $e) {
+        echo "<p style='color:red'>❌ Erreur lors de la création des données de test: " . $e->getMessage() . "</p>";
+    }
+}
+
+echo "<p>Vérification terminée.</p>";

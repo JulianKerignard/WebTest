@@ -116,7 +116,15 @@ class ApplicationController {
     }
 
     /**
-     * Afficher les détails d'une candidature
+     * Afficher les candidatures pour une entreprise
+     */
+    public function companyApplications() {
+        // Rediriger vers la méthode index qui gère déjà les candidatures par rôle
+        return $this->index();
+    }
+
+    /**
+     * Afficher les détails d'une candidature avec débogage
      */
     public function show($id) {
         $session = App::$app->session;
@@ -127,47 +135,82 @@ class ApplicationController {
             return App::$app->response->redirect('/login');
         }
 
-        // Récupérer la candidature avec toutes les informations nécessaires
-        $application = $this->applicationModel->findById($id);
-
-        // Vérification critique : rediriger si l'application n'existe pas
-        if (!$application) {
-            $session->setFlash('error', 'Candidature non trouvée');
-            return App::$app->response->redirect('/applications');
+        // Débogage - Activation de l'affichage des erreurs
+        if (App::$app->config->get('app.debug')) {
+            ini_set('display_errors', 1);
+            ini_set('display_startup_errors', 1);
+            error_reporting(E_ALL);
         }
 
-        // Vérifier les permissions
-        $hasAccess = false;
+        // Récupérer la candidature
+        try {
+            $application = $this->applicationModel->findById($id);
 
-        if ($user['role'] === 'student' && $application['student_id'] == $user['id']) {
-            $hasAccess = true;
-            $viewTemplate = 'student/application-details';
-        } elseif ($user['role'] === 'company') {
-            // Vérifier si cette candidature concerne une offre de cette entreprise
-            $company = $this->companyModel->findByAccountId($user['id']);
-            if ($company && $application['company_id'] == $company['ID_Company']) {
-                $hasAccess = true;
-                $viewTemplate = 'company/application-details';
+            // Vérification critique : rediriger si l'application n'existe pas
+            if (!$application) {
+                $session->setFlash('error', 'Candidature non trouvée');
+                App::$app->logger->logError("Candidature non trouvée avec ID: {$id}");
+                return App::$app->response->redirect('/applications');
             }
-        } elseif ($user['role'] === 'admin' || $user['role'] === 'pilot') {
-            $hasAccess = true;
-            $viewTemplate = 'admin/applications/show';
-        }
 
-        if (!$hasAccess) {
-            $session->setFlash('error', 'Vous n\'êtes pas autorisé à accéder à cette candidature');
+            // Debug: afficher les données de l'application
+            if (App::$app->config->get('app.debug')) {
+                echo "<div style='background:#f8f9fa; padding:15px; margin:15px; border-radius:5px; font-family:monospace;'>";
+                echo "<h3>Debug - Application Data:</h3>";
+                echo "<pre>";
+                print_r($application);
+                echo "</pre>";
+                echo "</div>";
+            }
+
+            // Vérifier les permissions
+            $hasAccess = false;
+
+            if ($user['role'] === 'student' && $application['student_id'] == $user['id']) {
+                $hasAccess = true;
+                $viewTemplate = 'student/application-details';
+            } elseif ($user['role'] === 'company') {
+                // Vérifier si cette candidature concerne une offre de cette entreprise
+                $company = $this->companyModel->findByAccountId($user['id']);
+                if ($company && isset($application['company_id']) && $application['company_id'] == $company['ID_Company']) {
+                    $hasAccess = true;
+                    $viewTemplate = 'company/application-details';
+                }
+            } elseif ($user['role'] === 'admin' || $user['role'] === 'pilot') {
+                $hasAccess = true;
+                $viewTemplate = 'admin/applications/show';
+            }
+
+            if (!$hasAccess) {
+                $session->setFlash('error', 'Vous n\'êtes pas autorisé à accéder à cette candidature');
+                return App::$app->response->redirect('/applications');
+            }
+
+            // Ajouter les données formatées nécessaires à l'affichage
+            $this->prepareApplicationData($application);
+
+            return $this->template->renderWithLayout($viewTemplate, 'dashboard', [
+                'application' => $application,
+                'status_options' => Application::$statusLabels,
+                'user' => $user,
+                'csrf_token' => SecurityHelper::generateCSRFToken()
+            ]);
+        } catch (\Exception $e) {
+            // Journaliser l'erreur
+            App::$app->logger->logError("Erreur dans show(): " . $e->getMessage());
+
+            if (App::$app->config->get('app.debug')) {
+                echo "<div style='background:#f8d7da; color:#721c24; padding:15px; margin:15px; border-radius:5px;'>";
+                echo "<h3>Erreur:</h3>";
+                echo "<p>" . $e->getMessage() . "</p>";
+                echo "<h4>Trace:</h4>";
+                echo "<pre>" . $e->getTraceAsString() . "</pre>";
+                echo "</div>";
+            }
+
+            $session->setFlash('error', 'Une erreur est survenue lors de la récupération des détails de la candidature');
             return App::$app->response->redirect('/applications');
         }
-
-        // Ajouter les données formatées nécessaires à l'affichage
-        $this->prepareApplicationData($application);
-
-        return $this->template->renderWithLayout($viewTemplate, 'dashboard', [
-            'application' => $application,
-            'status_options' => Application::$statusLabels,
-            'user' => $user,
-            'csrf_token' => SecurityHelper::generateCSRFToken()
-        ]);
     }
 
     /**
@@ -189,48 +232,9 @@ class ApplicationController {
             $application['status_history'] = $this->applicationModel->getApplicationHistory($application['id']);
         }
 
-        // Ajouter les libellés des statuts pour l'historique
-        if (isset($application['status_history']) && is_array($application['status_history'])) {
-            foreach ($application['status_history'] as &$history) {
-                $history['status_label'] = Application::$statusLabels[$history['status']] ?? 'Inconnu';
-                $history['time_ago'] = $this->getTimeAgo($history['created_at']);
-            }
-        }
-
         // Récupérer les notes sur la candidature si elles ne sont pas déjà présentes
         if (!isset($application['notes'])) {
             $application['notes'] = $this->applicationModel->getApplicationNotes($application['id']);
-        }
-    }
-
-    /**
-     * Calcule le temps écoulé depuis une date donnée
-     */
-    private function getTimeAgo($datetime) {
-        $time = strtotime($datetime);
-        $now = time();
-        $diff = $now - $time;
-
-        if ($diff < 60) {
-            return "il y a quelques secondes";
-        } else if ($diff < 3600) {
-            $mins = floor($diff / 60);
-            return "il y a " . $mins . " minute" . ($mins > 1 ? "s" : "");
-        } else if ($diff < 86400) {
-            $hours = floor($diff / 3600);
-            return "il y a " . $hours . " heure" . ($hours > 1 ? "s" : "");
-        } else if ($diff < 604800) {
-            $days = floor($diff / 86400);
-            return "il y a " . $days . " jour" . ($days > 1 ? "s" : "");
-        } else if ($diff < 2592000) {
-            $weeks = floor($diff / 604800);
-            return "il y a " . $weeks . " semaine" . ($weeks > 1 ? "s" : "");
-        } else if ($diff < 31536000) {
-            $months = floor($diff / 2592000);
-            return "il y a " . $months . " mois";
-        } else {
-            $years = floor($diff / 31536000);
-            return "il y a " . $years . " an" . ($years > 1 ? "s" : "");
         }
     }
 
@@ -364,7 +368,7 @@ class ApplicationController {
         // Vérifier les permissions pour les entreprises
         if ($user['role'] === 'company') {
             $company = $this->companyModel->findByAccountId($user['id']);
-            if (!$company || $application['company_id'] != $company['ID_Company']) {
+            if (!$company || !isset($application['company_id']) || $application['company_id'] != $company['ID_Company']) {
                 return App::$app->response->json([
                     'success' => false,
                     'message' => 'Vous n\'êtes pas autorisé à modifier cette candidature'
@@ -425,7 +429,7 @@ class ApplicationController {
         // Vérifier les permissions pour les entreprises
         if ($user['role'] === 'company') {
             $company = $this->companyModel->findByAccountId($user['id']);
-            if (!$company || $application['company_id'] != $company['ID_Company']) {
+            if (!$company || !isset($application['company_id']) || $application['company_id'] != $company['ID_Company']) {
                 return App::$app->response->json([
                     'success' => false,
                     'message' => 'Vous n\'êtes pas autorisé à ajouter une note à cette candidature'
@@ -477,7 +481,7 @@ class ApplicationController {
             $hasAccess = true;
         } elseif ($user['role'] === 'company') {
             $company = $this->companyModel->findByAccountId($user['id']);
-            if ($company && $application['company_id'] == $company['ID_Company']) {
+            if ($company && isset($application['company_id']) && $application['company_id'] == $company['ID_Company']) {
                 $hasAccess = true;
             }
         } elseif ($user['role'] === 'admin' || $user['role'] === 'pilot') {
