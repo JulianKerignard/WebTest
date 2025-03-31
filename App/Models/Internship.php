@@ -1,14 +1,11 @@
 ﻿<?php
 namespace App\Models;
 
-use App\Core\Database;
+use App\Core\Model;
 
-class Internship {
-    private $db;
-
-    public function __construct() {
-        $this->db = Database::getInstance();
-    }
+class Internship extends Model {
+    protected $table = 'Offers';
+    protected $primaryKey = 'ID_Offer';
 
     /**
      * Trouve toutes les offres de stage, avec option de limitation
@@ -31,7 +28,7 @@ class Internship {
     }
 
     /**
-     * Trouve une offre de stage par son ID
+     * Trouve une offre de stage par son ID avec les détails de l'entreprise
      */
     public function findById($id) {
         return $this->db->fetch("
@@ -72,13 +69,36 @@ class Internship {
             $params[] = $filters['company_id'];
         }
 
+        // Filtrer par domaine ou secteur
+        if (!empty($filters['domain'])) {
+            $conditions[] = "c.ID_Sector = ?";
+            $params[] = $filters['domain'];
+        }
+
+        // Filtrer par niveau d'études
+        if (!empty($filters['level'])) {
+            $conditions[] = "o.ID_level = ?";
+            $params[] = $filters['level'];
+        }
+
+        // Filtrer par rémunération minimale
+        if (!empty($filters['remuneration'])) {
+            $conditions[] = "o.monthly_remuneration >= ?";
+            $params[] = $filters['remuneration'];
+        }
+
+        // Filtrer par durée
+        if (!empty($filters['duration'])) {
+            $conditions[] = "o.internship_duration LIKE ?";
+            $params[] = "%{$filters['duration']}%";
+        }
+
         $sql = "
             SELECT o.*, c.Name as company_name 
             FROM Offers o
             JOIN Company c ON o.ID_Company = c.ID_Company
             WHERE " . implode(' AND ', $conditions) . "
-            ORDER BY o.Date_of_publication DESC
-        ";
+            ORDER BY " . (!empty($filters['sort']) ? $this->getSortOrder($filters['sort']) : "o.Date_of_publication DESC");
 
         // Pagination
         if (isset($filters['limit']) && isset($filters['offset'])) {
@@ -91,63 +111,20 @@ class Internship {
     }
 
     /**
-     * Crée une nouvelle offre de stage
+     * Renvoie l'ordre de tri en fonction du paramètre
      */
-    public function create($data) {
-        return $this->db->insert('Offers', [
-            'ID_Company' => $data['ID_Company'],
-            'Offer_title' => $data['Offer_title'],
-            'Description' => $data['Description'],
-            'Nomber_of_remaining_internship_places' => $data['Nomber_of_remaining_internship_places'] ?? 1,
-            'Date_of_publication' => $data['Date_of_publication'] ?? date('Y-m-d'),
-            'ID_level' => $data['ID_level'] ?? null,
-            'Starting_internship_date' => $data['Starting_internship_date'] ?? null,
-            'internship_duration' => $data['internship_duration'] ?? null,
-            'monthly_remuneration' => $data['monthly_remuneration'] ?? null,
-            'location' => $data['location'] ?? null,
-            'remote_possible' => isset($data['remote_possible']) ? 1 : 0,
-            'status' => 'active'
-        ]);
-    }
-
-    /**
-     * Met à jour une offre de stage existante
-     */
-    public function update($id, $data) {
-        return $this->db->update('Offers', [
-            'ID_Company' => $data['ID_Company'],
-            'Offer_title' => $data['Offer_title'],
-            'Description' => $data['Description'],
-            'ID_level' => $data['ID_level'] ?? null,
-            'Starting_internship_date' => $data['Starting_internship_date'] ?? null,
-            'internship_duration' => $data['internship_duration'] ?? null,
-            'monthly_remuneration' => $data['monthly_remuneration'] ?? null,
-            'location' => $data['location'] ?? null,
-            'remote_possible' => isset($data['remote_possible']) ? 1 : 0,
-            'status' => $data['status'] ?? 'active',
-            'updated_at' => date('Y-m-d H:i:s')
-        ], 'ID_Offer = ?', [$id]);
-    }
-
-    /**
-     * Supprime une offre de stage
-     */
-    public function delete($id) {
-        return $this->db->delete('Offers', 'ID_Offer = ?', [$id]);
-    }
-
-    /**
-     * Récupère les niveaux d'études
-     */
-    public function getLevels() {
-        return $this->db->fetchAll("SELECT * FROM Level_Of_Study ORDER BY ID_level");
-    }
-
-    /**
-     * Récupère les compétences
-     */
-    public function getSkills() {
-        return $this->db->fetchAll("SELECT * FROM Skills ORDER BY Skill_name");
+    private function getSortOrder($sort) {
+        switch ($sort) {
+            case 'recent':
+                return "o.Date_of_publication DESC";
+            case 'salary':
+                return "o.monthly_remuneration DESC";
+            case 'duration':
+                return "o.internship_duration DESC";
+            case 'relevant':
+            default:
+                return "o.Date_of_publication DESC";
+        }
     }
 
     /**
@@ -178,11 +155,23 @@ class Internship {
     }
 
     /**
-     * Récupère les offres d'une entreprise
+     * Supprime les compétences associées à une offre
      */
-    public function getByCompany($companyId) {
-        return $this->db->fetchAll("
-            SELECT * FROM Offers WHERE ID_Company = ? ORDER BY Date_of_publication DESC
-        ", [$companyId]);
+    public function removeSkills($offerId) {
+        return $this->db->delete('offer_skills', 'offer_id = ?', [$offerId]);
+    }
+
+    /**
+     * Récupère les niveaux d'études
+     */
+    public function getLevels() {
+        return $this->db->fetchAll("SELECT * FROM Level_Of_Study ORDER BY ID_level");
+    }
+
+    /**
+     * Récupère les compétences
+     */
+    public function getSkills() {
+        return $this->db->fetchAll("SELECT * FROM Skills ORDER BY Skill_name");
     }
 }

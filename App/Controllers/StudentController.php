@@ -1,23 +1,21 @@
 ﻿<?php
 namespace App\Controllers;
 
-use App\Core\App;
-use App\Core\Template;
+use App\Core\Controller;
 use App\Models\Student;
 use App\Models\Internship;
 use App\Models\Application;
 use App\Models\Wishlist;
 use App\Helpers\FileHelper;
 
-class StudentController {
-    private $template;
+class StudentController extends Controller {
     private $studentModel;
     private $internshipModel;
     private $applicationModel;
     private $wishlistModel;
 
     public function __construct() {
-        $this->template = new Template();
+        parent::__construct();
         $this->studentModel = new Student();
         $this->internshipModel = new Internship();
         $this->applicationModel = new Application();
@@ -25,206 +23,189 @@ class StudentController {
     }
 
     /**
-     * Display student dashboard
+     * Affiche le tableau de bord étudiant
      */
     public function dashboard() {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || $user['role'] !== 'student') {
-            $session->setFlash('error', 'Accès non autorisé');
-            return App::$app->response->redirect('/login');
+        // Vérifier les autorisations
+        if ($this->requireRole('student') !== true) {
+            return;
         }
 
+        $user = $this->getCurrentUser();
         $student = $this->studentModel->findById($user['id']);
-        $applications = $this->applicationModel->findByStudentId($user['id']);
+
+        // Données pour le tableau de bord
+        $applications = $this->applicationModel->findByStudentId($user['id'], 5);
         $wishlist = $this->wishlistModel->getWishlist($user['id']);
+        $recommendedInternships = $this->internshipModel->search(['limit' => 3]);
 
-        // Get some recommended internships
-        $recommendedInternships = $this->internshipModel->search([
-            'limit' => 3
-        ]);
+        // Statistiques pour les widgets
+        $stats = $this->applicationModel->getApplicationStatistics($user['id']);
 
-        return $this->template->renderWithLayout('student/dashboard', 'dashboard', [
+        // Calculer le pourcentage de complétion du profil
+        $profileTasks = $this->getProfileCompletionTasks($student);
+        $profileCompletion = $this->calculateProfileCompletion($profileTasks);
+
+        return $this->renderWithLayout('student/dashboard', 'dashboard', [
             'student' => $student,
             'applications' => $applications,
             'wishlist' => $wishlist,
             'recommendedInternships' => $recommendedInternships,
-            'user' => $user
+            'stats' => $stats,
+            'profileTasks' => $profileTasks,
+            'profileCompletion' => $profileCompletion
         ]);
     }
 
     /**
-     * Display student profile
+     * Affiche le profil de l'étudiant
      */
     public function profile() {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || $user['role'] !== 'student') {
-            $session->setFlash('error', 'Accès non autorisé');
-            return App::$app->response->redirect('/login');
+        if ($this->requireRole('student') !== true) {
+            return;
         }
 
+        $user = $this->getCurrentUser();
         $student = $this->studentModel->findById($user['id']);
 
-        return $this->template->renderWithLayout('student/profile', 'dashboard', [
-            'student' => $student,
-            'user' => $user
+        return $this->renderWithLayout('student/profile', 'dashboard', [
+            'student' => $student
         ]);
     }
 
     /**
-     * Update student profile
+     * Met à jour le profil de l'étudiant
      */
     public function updateProfile() {
-        $request = App::$app->request;
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || $user['role'] !== 'student') {
-            return App::$app->response->json([
+        if ($this->requireRole('student') !== true) {
+            return $this->json([
                 'success' => false,
                 'message' => 'Accès non autorisé'
             ], 403);
         }
 
-        $data = $request->getBody();
+        $data = $this->request->getBody();
+        $user = $this->getCurrentUser();
 
-        // Update basic user info
-        $result = App::$app->db->update('Account', [
+        // Mettre à jour les informations de base
+        $result = $this->session->db->update('Account', [
             'Username' => $data['Username'],
             'Email' => $data['Email'],
             'Civility' => $data['Civility'] ?? null
         ], 'ID_account = ?', [$user['id']]);
 
-        // Update student-specific info
+        // Mettre à jour les informations spécifiques à l'étudiant
         $this->studentModel->update($user['id'], [
             'Licence' => isset($data['Licence']) ? 1 : 0,
             'Majority' => $data['Majority'] ?? null,
-            'promotion' => $data['promotion'] ?? null
+            'promotion' => $data['promotion'] ?? null,
+            'school_name' => $data['school_name'] ?? null,
+            'study_field' => $data['study_field'] ?? null
         ]);
 
-        // Handle CV upload if provided
-        $cvFile = $request->getFile('cv');
+        // Gérer l'upload du CV si fourni
+        $cvFile = $this->request->getFile('cv');
         if ($cvFile && $cvFile['error'] === UPLOAD_ERR_OK) {
             $result = $this->studentModel->uploadCV($user['id'], $cvFile);
             if (!$result['success']) {
-                return App::$app->response->json([
+                return $this->json([
                     'success' => false,
                     'message' => $result['error']
                 ], 400);
             }
         }
 
-        // Update session data
+        // Mettre à jour les données de session
         $updatedStudent = $this->studentModel->findById($user['id']);
-        $session->set('user', [
+        $this->session->set('user', [
             'id' => $updatedStudent['ID_account'],
             'email' => $updatedStudent['Email'],
             'username' => $updatedStudent['Username'],
             'role' => 'student'
         ]);
 
-        return App::$app->response->json([
+        return $this->json([
             'success' => true,
             'message' => 'Profil mis à jour avec succès'
         ]);
     }
 
     /**
-     * Display applications
+     * Affiche les candidatures de l'étudiant
      */
     public function applications() {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || $user['role'] !== 'student') {
-            $session->setFlash('error', 'Accès non autorisé');
-            return App::$app->response->redirect('/login');
+        if ($this->requireRole('student') !== true) {
+            return;
         }
 
-        $applications = $this->applicationModel->findByStudentId($user['id']);
+        $user = $this->getCurrentUser();
 
-        return $this->template->renderWithLayout('student/applications', 'dashboard', [
+        // Paramètres de pagination
+        $page = (int)$this->request->get('page', 1);
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        // Récupérer les candidatures
+        $applications = $this->applicationModel->findByStudentId($user['id'], $limit, $offset);
+        $stats = $this->applicationModel->getApplicationStatistics($user['id']);
+        $totalApplications = $stats['total'];
+
+        return $this->renderWithLayout('student/applications', 'dashboard', [
             'applications' => $applications,
-            'user' => $user
+            'stats' => $stats,
+            'pagination' => [
+                'page' => $page,
+                'total_pages' => ceil($totalApplications / $limit),
+                'total_items' => $totalApplications
+            ]
         ]);
     }
 
     /**
-     * Apply for an internship
+     * Calcule les tâches de complétion du profil
      */
-    public function apply() {
-        $request = App::$app->request;
-        $session = App::$app->session;
-        $user = $session->get('user');
+    private function getProfileCompletionTasks($student) {
+        $tasks = [
+            [
+                'name' => 'Informations personnelles',
+                'completed' => !empty($student['Username']) && !empty($student['Email']) && !empty($student['Civility'])
+            ],
+            [
+                'name' => 'Formation académique',
+                'completed' => !empty($student['school_name']) && !empty($student['study_field'])
+            ],
+            [
+                'name' => 'CV',
+                'completed' => !empty($student['CV'])
+            ],
+            [
+                'name' => 'Compétences',
+                'completed' => false // À implémenter avec une table de compétences étudiantes
+            ],
+            [
+                'name' => 'Photo de profil',
+                'completed' => false // À implémenter avec un champ pour la photo
+            ]
+        ];
 
-        if (!$user || $user['role'] !== 'student') {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Vous devez être connecté en tant qu\'étudiant pour postuler'
-            ], 403);
+        return $tasks;
+    }
+
+    /**
+     * Calcule le pourcentage de complétion du profil
+     */
+    private function calculateProfileCompletion($tasks) {
+        if (empty($tasks)) {
+            return 0;
         }
 
-        $offerId = $request->get('offer_id');
-        $coverLetter = $request->get('cover_letter');
-
-        if (!$offerId || !$coverLetter) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Tous les champs sont obligatoires'
-            ], 400);
-        }
-
-        // Check if internship exists
-        $internship = $this->internshipModel->findById($offerId);
-        if (!$internship) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Stage non trouvé'
-            ], 404);
-        }
-
-        // Handle CV upload or use existing CV
-        $student = $this->studentModel->findById($user['id']);
-        $cvPath = $student['CV'];
-
-        $cvFile = $request->getFile('cv');
-        if ($cvFile && $cvFile['error'] === UPLOAD_ERR_OK) {
-            $uploadResult = FileHelper::uploadFile($cvFile, 'cv');
-            if ($uploadResult['success']) {
-                $cvPath = $uploadResult['filename'];
-                // Update student CV
-                $this->studentModel->update($user['id'], ['CV' => $cvPath]);
-            } else {
-                return App::$app->response->json([
-                    'success' => false,
-                    'message' => $uploadResult['error']
-                ], 400);
+        $completedCount = 0;
+        foreach ($tasks as $task) {
+            if ($task['completed']) {
+                $completedCount++;
             }
         }
 
-        if (!$cvPath) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Vous devez télécharger un CV pour postuler'
-            ], 400);
-        }
-
-        // Create application
-        $result = $this->applicationModel->create($user['id'], $offerId, $coverLetter, $cvPath);
-
-        if ($result) {
-            return App::$app->response->json([
-                'success' => true,
-                'message' => 'Candidature envoyée avec succès'
-            ]);
-        } else {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Erreur lors de l\'envoi de la candidature'
-            ], 500);
-        }
+        return round(($completedCount / count($tasks)) * 100);
     }
 }

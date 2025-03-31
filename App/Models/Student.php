@@ -1,15 +1,16 @@
 ﻿<?php
 namespace App\Models;
 
-use App\Core\Database;
+use App\Core\Model;
+use App\Helpers\FileHelper;
 
-class Student {
-    private $db;
+class Student extends Model {
+    protected $table = 'Student';
+    protected $primaryKey = 'ID_account';
 
-    public function __construct() {
-        $this->db = Database::getInstance();
-    }
-
+    /**
+     * Récupère un étudiant avec les informations de son compte
+     */
     public function findById($id) {
         return $this->db->fetch("
             SELECT s.*, acc.* 
@@ -19,14 +20,28 @@ class Student {
         ", [$id]);
     }
 
-    public function findAll() {
-        return $this->db->fetchAll("
+    /**
+     * Récupère tous les étudiants avec les informations de leur compte
+     */
+    public function findAll($limit = null, $offset = 0) {
+        $sql = "
             SELECT s.*, acc.* 
             FROM Student s
             JOIN Account acc ON s.ID_account = acc.ID_account
-        ");
+            ORDER BY acc.Username
+        ";
+
+        if ($limit !== null) {
+            $sql .= " LIMIT ? OFFSET ?";
+            return $this->db->fetchAll($sql, [$limit, $offset]);
+        }
+
+        return $this->db->fetchAll($sql);
     }
 
+    /**
+     * Crée un nouveau profil étudiant
+     */
     public function create($accountId, $data = []) {
         $now = date('Y-m-d');
         return $this->db->insert('Student', [
@@ -34,26 +49,17 @@ class Student {
             'Licence' => $data['Licence'] ?? 0,
             'Majority' => $data['Majority'] ?? $now,
             'promotion' => $data['promotion'] ?? null,
-            'CV' => $data['CV'] ?? null
+            'CV' => $data['CV'] ?? null,
+            'school_name' => $data['school_name'] ?? null,
+            'study_field' => $data['study_field'] ?? null
         ]);
     }
 
-    public function update($id, $data) {
-        return $this->db->update('Student', [
-            'Licence' => $data['Licence'] ?? 0,
-            'Majority' => $data['Majority'] ?? null,
-            'promotion' => $data['promotion'] ?? null,
-            'CV' => $data['CV'] ?? null
-        ], 'ID_account = ?', [$id]);
-    }
-
-    public function delete($id) {
-        return $this->db->delete('Student', 'ID_account = ?', [$id]);
-    }
-
+    /**
+     * Télécharge un CV pour un étudiant
+     */
     public function uploadCV($studentId, $file) {
-        // Cette méthode devrait utiliser le FileHelper pour gérer l'upload
-        $result = \App\Helpers\FileHelper::uploadFile($file, 'cv');
+        $result = FileHelper::uploadFile($file, 'cv');
 
         if ($result['success']) {
             $this->db->update('Student', [
@@ -66,8 +72,10 @@ class Student {
         return $result;
     }
 
+    /**
+     * Récupère les candidatures d'un étudiant
+     */
     public function getAppliedInternships($studentId) {
-        // Cette méthode est théorique car la table des candidatures n'existe pas encore
         return $this->db->fetchAll("
             SELECT a.*, o.Offer_title, o.Description as offer_description, c.Name as company_name
             FROM applications a
@@ -78,8 +86,10 @@ class Student {
         ", [$studentId]);
     }
 
+    /**
+     * Récupère les stages favoris d'un étudiant
+     */
     public function getFavorites($studentId) {
-        // Cette méthode est théorique car la table des favoris n'existe pas encore
         return $this->db->fetchAll("
             SELECT w.*, o.Offer_title, o.Description as offer_description, c.Name as company_name
             FROM wishlist w
@@ -90,6 +100,9 @@ class Student {
         ", [$studentId]);
     }
 
+    /**
+     * Récupère les étudiants d'une promotion
+     */
     public function getStudentsByPromotion($promotionId) {
         return $this->db->fetchAll("
             SELECT s.*, acc.* 

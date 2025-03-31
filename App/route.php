@@ -1,6 +1,7 @@
 ﻿<?php
 /**
  * Fichier de définition des routes pour l'application LeBonPlan
+ * Version simplifiée avec regroupement par fonctionnalité
  */
 
 namespace App;
@@ -24,10 +25,18 @@ function registerRoutes(App $app) {
     $adminPilotMiddleware = new \App\Middleware\AuthMiddleware(['admin', 'pilot']);
     $studentMiddleware = new \App\Middleware\AuthMiddleware(['student']);
 
-    // --------------------------------
-    // Routes publiques
-    // --------------------------------
+    // Regrouper les routes par fonctionnalité
+    registerPublicRoutes($router, $csrfMiddleware);
+    registerAuthRoutes($router, $csrfMiddleware);
+    registerStudentRoutes($router, $studentMiddleware, $csrfMiddleware);
+    registerAdminRoutes($router, $adminMiddleware, $csrfMiddleware);
+    registerPilotRoutes($router, $adminPilotMiddleware, $csrfMiddleware);
+}
 
+/**
+ * Routes publiques
+ */
+function registerPublicRoutes($router, $csrfMiddleware) {
     // Page d'accueil
     $router->get('/', [\App\Controllers\HomeController::class, 'index']);
 
@@ -40,10 +49,19 @@ function registerRoutes(App $app) {
     $router->get('/contact', [\App\Controllers\ContactController::class, 'index']);
     $router->post('/contact/submit', [\App\Controllers\ContactController::class, 'submit'], [$csrfMiddleware]);
 
-    // --------------------------------
-    // Routes d'authentification
-    // --------------------------------
+    // Recherche et affichage des stages
+    $router->get('/stages', [\App\Controllers\InternshipController::class, 'index']);
+    $router->get('/stages/{id}', [\App\Controllers\InternshipController::class, 'show']);
 
+    // Recherche et affichage des entreprises
+    $router->get('/companies', [\App\Controllers\CompanyController::class, 'index']);
+    $router->get('/companies/{id}', [\App\Controllers\CompanyController::class, 'show']);
+}
+
+/**
+ * Routes d'authentification
+ */
+function registerAuthRoutes($router, $csrfMiddleware) {
     // Connexion
     $router->get('/login', [\App\Controllers\AuthController::class, 'login']);
     $router->post('/login', [\App\Controllers\AuthController::class, 'authenticate'], [$csrfMiddleware]);
@@ -52,25 +70,14 @@ function registerRoutes(App $app) {
     $router->get('/register', [\App\Controllers\AuthController::class, 'register']);
     $router->post('/register', [\App\Controllers\AuthController::class, 'store'], [$csrfMiddleware]);
 
-    // Déconnexion
-    $router->get('/logout', [\App\Controllers\AuthController::class, 'logout'], [$authMiddleware]);
+    // Déconnexion (protégée par un middleware d'authentification)
+    $router->get('/logout', [\App\Controllers\AuthController::class, 'logout'], [new \App\Middleware\AuthMiddleware()]);
+}
 
-    // --------------------------------
-    // Routes de consultation publiques
-    // --------------------------------
-
-    // Recherche et affichage des stages
-    $router->get('/stages', [\App\Controllers\InternshipController::class, 'index']);
-    $router->get('/stages/{id}', [\App\Controllers\InternshipController::class, 'show']);
-
-    // Recherche et affichage des entreprises
-    $router->get('/companies', [\App\Controllers\CompanyController::class, 'index']);
-    $router->get('/companies/{id}', [\App\Controllers\CompanyController::class, 'show']);
-
-    // --------------------------------
-    // Routes étudiant
-    // --------------------------------
-
+/**
+ * Routes pour les étudiants
+ */
+function registerStudentRoutes($router, $studentMiddleware, $csrfMiddleware) {
     // Dashboard étudiant
     $router->get('/student/dashboard', [\App\Controllers\StudentController::class, 'dashboard'], [$studentMiddleware]);
 
@@ -81,31 +88,18 @@ function registerRoutes(App $app) {
     // Candidatures
     $router->get('/student/applications', [\App\Controllers\StudentController::class, 'applications'], [$studentMiddleware]);
     $router->post('/apply', [\App\Controllers\ApplicationController::class, 'apply'], [$studentMiddleware, $csrfMiddleware]);
-    $router->get('/applications/{id}', [\App\Controllers\ApplicationController::class, 'show'], [$authMiddleware]);
+    $router->get('/applications/{id}', [\App\Controllers\ApplicationController::class, 'show'], [$studentMiddleware]);
 
     // Wishlist (favoris)
     $router->get('/student/wishlist', [\App\Controllers\WishlistController::class, 'index'], [$studentMiddleware]);
     $router->post('/wishlist/add', [\App\Controllers\WishlistController::class, 'addToWishlist'], [$studentMiddleware, $csrfMiddleware]);
     $router->post('/wishlist/remove', [\App\Controllers\WishlistController::class, 'removeFromWishlist'], [$studentMiddleware, $csrfMiddleware]);
+}
 
-    // --------------------------------
-    // Routes pilote de promotion
-    // --------------------------------
-
-    // Dashboard pilote
-    $router->get('/pilot/dashboard', [\App\Controllers\PilotController::class, 'dashboard'], [$adminPilotMiddleware]);
-
-    // Gestion des étudiants
-    $router->get('/pilot/students', [\App\Controllers\PilotController::class, 'students'], [$adminPilotMiddleware]);
-    $router->get('/pilot/students/{id}', [\App\Controllers\PilotController::class, 'viewStudent'], [$adminPilotMiddleware]);
-
-    // Gestion des stages
-    $router->get('/pilot/internships', [\App\Controllers\PilotController::class, 'internships'], [$adminPilotMiddleware]);
-
-    // --------------------------------
-    // Routes administrateur
-    // --------------------------------
-
+/**
+ * Routes pour les administrateurs
+ */
+function registerAdminRoutes($router, $adminMiddleware, $csrfMiddleware) {
     // Dashboard admin
     $router->get('/admin/dashboard', [\App\Controllers\AdminController::class, 'dashboard'], [$adminMiddleware]);
 
@@ -132,12 +126,22 @@ function registerRoutes(App $app) {
     $router->get('/admin/internships/create', [\App\Controllers\InternshipController::class, 'create'], [$adminMiddleware]);
     $router->post('/admin/internships/store', [\App\Controllers\InternshipController::class, 'store'], [$adminMiddleware, $csrfMiddleware]);
     $router->post('/admin/internships/delete/{id}', [\App\Controllers\InternshipController::class, 'delete'], [$adminMiddleware, $csrfMiddleware]);
+}
 
-    // --------------------------------
-    // Routes des erreurs
-    // --------------------------------
+/**
+ * Routes pour les pilotes de promotion
+ */
+function registerPilotRoutes($router, $adminPilotMiddleware, $csrfMiddleware) {
+    // Dashboard pilote
+    $router->get('/pilot/dashboard', [\App\Controllers\PilotController::class, 'dashboard'], [$adminPilotMiddleware]);
 
-    $router->get('/404', function() {
-        return (new \App\Core\Template())->renderWithLayout('error/404', 'main');
-    });
+    // Gestion des étudiants
+    $router->get('/pilot/students', [\App\Controllers\PilotController::class, 'students'], [$adminPilotMiddleware]);
+    $router->get('/pilot/students/{id}', [\App\Controllers\PilotController::class, 'viewStudent'], [$adminPilotMiddleware]);
+
+    // Gestion des stages
+    $router->get('/pilot/internships', [\App\Controllers\PilotController::class, 'internships'], [$adminPilotMiddleware]);
+
+    // Statistiques
+    $router->get('/pilot/statistics', [\App\Controllers\PilotController::class, 'statistics'], [$adminPilotMiddleware]);
 }

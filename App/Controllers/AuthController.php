@@ -1,21 +1,19 @@
 ﻿<?php
 namespace App\Controllers;
 
-use App\Core\App;
-use App\Core\Template;
+use App\Core\Controller;
 use App\Models\Student;
-use App\Models\Admin;
-use App\Models\Pilot;
 use App\Models\User;
 use App\Helpers\SecurityHelper;
 
-class AuthController {
-    private $template;
+class AuthController extends Controller {
     private $userModel;
+    private $studentModel;
 
     public function __construct() {
-        $this->template = new Template();
+        parent::__construct();
         $this->userModel = new User();
+        $this->studentModel = new Student();
     }
 
     /**
@@ -23,15 +21,15 @@ class AuthController {
      */
     public function login() {
         // Si l'utilisateur est déjà connecté, le rediriger
-        $session = App::$app->session;
-        $user = $session->get('user');
-        if ($user) {
+        if ($this->isAuthenticated()) {
+            $user = $this->getCurrentUser();
             return $this->redirectUserByRole($user['role']);
         }
 
-        // Affiche la page de connexion
+        // Générer un token CSRF
         $csrf = SecurityHelper::generateCSRFToken();
-        return $this->template->renderWithLayout('auth/login', 'main', [
+
+        return $this->renderWithLayout('auth/login', 'main', [
             'csrf_token' => $csrf
         ]);
     }
@@ -40,33 +38,31 @@ class AuthController {
      * Authentifie un utilisateur
      */
     public function authenticate() {
-        $request = App::$app->request;
-        $email = $request->get('email');
-        $password = $request->get('password');
-        $session = App::$app->session;
+        $email = $this->request->get('email');
+        $password = $this->request->get('password');
 
         // Validation de base
         if (empty($email) || empty($password)) {
-            $session->setFlash('error', 'Veuillez remplir tous les champs');
-            return App::$app->response->redirect('/login');
+            $this->session->setFlash('error', 'Veuillez remplir tous les champs');
+            return $this->response->redirect('/login');
         }
 
         // Vérifier si l'utilisateur existe
         $user = $this->userModel->findByEmail($email);
 
         if (!$user || !SecurityHelper::verifyPassword($password, $user['Password'])) {
-            $session->setFlash('error', 'Email ou mot de passe incorrect');
-            return App::$app->response->redirect('/login');
+            $this->session->setFlash('error', 'Email ou mot de passe incorrect');
+            return $this->response->redirect('/login');
         }
 
-        // Déterminer le type d'utilisateur (étudiant, pilote, admin)
+        // Déterminer le type d'utilisateur
         $role = $this->userModel->getRoleById($user['ID_account']);
 
         // Mettre à jour la date de dernière connexion
         $this->userModel->updateLastLogin($user['ID_account']);
 
         // Créer la session de l'utilisateur
-        $session->set('user', [
+        $this->session->set('user', [
             'id' => $user['ID_account'],
             'email' => $user['Email'],
             'username' => $user['Username'],
@@ -82,15 +78,15 @@ class AuthController {
      */
     public function register() {
         // Si l'utilisateur est déjà connecté, le rediriger
-        $session = App::$app->session;
-        $user = $session->get('user');
-        if ($user) {
+        if ($this->isAuthenticated()) {
+            $user = $this->getCurrentUser();
             return $this->redirectUserByRole($user['role']);
         }
 
-        // Affiche la page d'inscription
+        // Générer un token CSRF
         $csrf = SecurityHelper::generateCSRFToken();
-        return $this->template->renderWithLayout('auth/register', 'main', [
+
+        return $this->renderWithLayout('auth/register', 'main', [
             'csrf_token' => $csrf
         ]);
     }
@@ -99,26 +95,24 @@ class AuthController {
      * Crée un nouveau compte utilisateur
      */
     public function store() {
-        $request = App::$app->request;
-        $data = $request->getBody();
-        $session = App::$app->session;
+        $data = $this->request->getBody();
 
         // Validation basique
         if (empty($data['email']) || empty($data['username']) || empty($data['password'])) {
-            $session->setFlash('error', 'Veuillez remplir tous les champs obligatoires');
-            return App::$app->response->redirect('/register');
+            $this->session->setFlash('error', 'Veuillez remplir tous les champs obligatoires');
+            return $this->response->redirect('/register');
         }
 
         // Vérifier que les mots de passe correspondent
         if ($data['password'] !== $data['password_confirmation']) {
-            $session->setFlash('error', 'Les mots de passe ne correspondent pas');
-            return App::$app->response->redirect('/register');
+            $this->session->setFlash('error', 'Les mots de passe ne correspondent pas');
+            return $this->response->redirect('/register');
         }
 
         // Vérifier si l'email existe déjà
         if ($this->userModel->findByEmail($data['email'])) {
-            $session->setFlash('error', 'Cette adresse email est déjà utilisée');
-            return App::$app->response->redirect('/register');
+            $this->session->setFlash('error', 'Cette adresse email est déjà utilisée');
+            return $this->response->redirect('/register');
         }
 
         // Créer un compte utilisateur
@@ -131,26 +125,26 @@ class AuthController {
         ]);
 
         // Créer un profil étudiant
-        $studentModel = new Student();
-        $studentModel->create($accountId, [
+        $this->studentModel->create($accountId, [
             'Licence' => isset($data['licence']) ? 1 : 0,
             'Majority' => $data['majority'] ?? date('Y-m-d'),
-            'promotion' => $data['promotion'] ?? null
+            'promotion' => $data['promotion'] ?? null,
+            'school_name' => $data['school_name'] ?? null,
+            'study_field' => $data['study_field'] ?? null
         ]);
 
-        $session->setFlash('success', 'Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.');
-        return App::$app->response->redirect('/login');
+        $this->session->setFlash('success', 'Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.');
+        return $this->response->redirect('/login');
     }
 
     /**
      * Déconnecte l'utilisateur
      */
     public function logout() {
-        $session = App::$app->session;
-        $session->remove('user');
-        $session->destroy();
+        $this->session->remove('user');
+        $this->session->destroy();
 
-        return App::$app->response->redirect('/');
+        return $this->response->redirect('/');
     }
 
     /**
@@ -159,12 +153,12 @@ class AuthController {
     private function redirectUserByRole($role) {
         switch ($role) {
             case 'admin':
-                return App::$app->response->redirect('/admin/dashboard');
+                return $this->response->redirect('/admin/dashboard');
             case 'pilot':
-                return App::$app->response->redirect('/pilot/dashboard');
+                return $this->response->redirect('/pilot/dashboard');
             case 'student':
             default:
-                return App::$app->response->redirect('/student/dashboard');
+                return $this->response->redirect('/student/dashboard');
         }
     }
 }
