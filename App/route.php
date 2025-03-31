@@ -1,7 +1,7 @@
 ﻿<?php
 /**
  * Fichier de définition des routes pour l'application LeBonPlan
- * Version simplifiée avec regroupement par fonctionnalité
+ * Version modifiée avec correction de routes pour les applications
  */
 
 namespace App;
@@ -85,15 +85,19 @@ function registerStudentRoutes($router, $studentMiddleware, $csrfMiddleware) {
     $router->get('/student/profile', [\App\Controllers\StudentController::class, 'profile'], [$studentMiddleware]);
     $router->post('/student/profile/update', [\App\Controllers\StudentController::class, 'updateProfile'], [$studentMiddleware, $csrfMiddleware]);
 
-    // Candidatures
+    // Candidatures d'étudiant
     $router->get('/student/applications', [\App\Controllers\StudentController::class, 'applications'], [$studentMiddleware]);
+    $router->get('/applications/{id}', [\App\Controllers\ApplicationController::class, 'show'], [$authMiddleware]);
+    $router->get('/applications/download-cv/{id}', [\App\Controllers\ApplicationController::class, 'downloadCV'], [$authMiddleware]);
+    $router->post('/applications/update-status', [\App\Controllers\ApplicationController::class, 'updateStatus'], [$authMiddleware, $csrfMiddleware]);
+    $router->post('/applications/add-note', [\App\Controllers\ApplicationController::class, 'addNote'], [$authMiddleware, $csrfMiddleware]);
     $router->post('/apply', [\App\Controllers\ApplicationController::class, 'apply'], [$studentMiddleware, $csrfMiddleware]);
-    $router->get('/applications/{id}', [\App\Controllers\ApplicationController::class, 'show'], [$studentMiddleware]);
 
     // Wishlist (favoris)
     $router->get('/student/wishlist', [\App\Controllers\WishlistController::class, 'index'], [$studentMiddleware]);
     $router->post('/wishlist/add', [\App\Controllers\WishlistController::class, 'addToWishlist'], [$studentMiddleware, $csrfMiddleware]);
     $router->post('/wishlist/remove', [\App\Controllers\WishlistController::class, 'removeFromWishlist'], [$studentMiddleware, $csrfMiddleware]);
+    $router->get('/wishlist/check', [\App\Controllers\WishlistController::class, 'checkWishlist'], [$studentMiddleware]);
 }
 
 /**

@@ -3,14 +3,6 @@
 $title = 'Gestion de candidature';
 $current_page = 'applications';
 
-// Vérifier si la variable $application existe
-if (!isset($application) || empty($application)) {
-    echo '<div class="error-message" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin: 15px; border-radius: 5px;">
-        <strong>Erreur:</strong> Les données de candidature sont manquantes ou la connexion à la base de données a échoué.
-    </div>';
-    return;
-}
-
 // Fonctions utilitaires locales pour éviter la dépendance au ViewHelper
 function safe_value($array, $key, $default = '') {
     if (!isset($array) || !is_array($array) || !isset($array[$key])) {
@@ -43,6 +35,17 @@ function format_date($array, $key, $format = 'd/m/Y', $default = '') {
 // Alias court pour les fonctions
 function v($array, $key, $default = '') {
     return escape_value($array, $key, $default);
+}
+
+// Vérifier si les données de candidature sont présentes
+if (!isset($application) || empty($application)) {
+    echo '<div class="error-message" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin: 15px; border-radius: 5px;">
+        <strong>Erreur:</strong> Les données de candidature sont manquantes ou la connexion à la base de données a échoué.
+    </div>';
+    echo '<div class="actions-container">
+        <a href="/applications" class="btn btn-primary">Retour à la liste des candidatures</a>
+    </div>';
+    return;
 }
 ?>
 
@@ -158,7 +161,7 @@ function v($array, $key, $default = '') {
                             <div class="note-item">
                                 <div class="note-header">
                                     <span class="note-author"><?= escape_value($note, 'author_name', 'Utilisateur') ?></span>
-                                    <span class="note-date"><?= isset($note['created_at']) ? $note['created_at'] : '' ?></span>
+                                    <span class="note-date"><?= isset($note['created_at']) ? format_date($note, 'created_at', 'd/m/Y à H:i') : '' ?></span>
                                 </div>
                                 <div class="note-content">
                                     <?= has_value($note, 'content') ? nl2br(htmlspecialchars($note['content'])) : '' ?>
@@ -324,7 +327,7 @@ function v($array, $key, $default = '') {
                             // Recharger la page pour afficher les changements
                             location.reload();
                         } else {
-                            alert(result.message);
+                            alert(result.message || 'Une erreur est survenue');
                         }
                     })
                     .catch(error => {
@@ -390,7 +393,7 @@ function v($array, $key, $default = '') {
                                 }
                             }
                         } else {
-                            alert(result.message);
+                            alert(result.message || 'Une erreur est survenue');
                         }
                     })
                     .catch(error => {

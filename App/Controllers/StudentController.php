@@ -1,21 +1,24 @@
 ﻿<?php
 namespace App\Controllers;
 
-use App\Core\Controller;
+use App\Core\App;
+use App\Core\Template;
 use App\Models\Student;
 use App\Models\Internship;
 use App\Models\Application;
 use App\Models\Wishlist;
+use App\Helpers\SecurityHelper;
 use App\Helpers\FileHelper;
 
-class StudentController extends Controller {
+class StudentController {
+    private $template;
     private $studentModel;
     private $internshipModel;
     private $applicationModel;
     private $wishlistModel;
 
     public function __construct() {
-        parent::__construct();
+        $this->template = new Template();
         $this->studentModel = new Student();
         $this->internshipModel = new Internship();
         $this->applicationModel = new Application();
@@ -23,21 +26,42 @@ class StudentController extends Controller {
     }
 
     /**
+     * Vérification de l'authentification d'un étudiant
+     */
+    private function requireStudentAuth() {
+        $session = App::$app->session;
+        $user = $session->get('user');
+
+        if (!$user) {
+            $session->setFlash('error', 'Vous devez être connecté pour accéder à cette page');
+            return App::$app->response->redirect('/login');
+        }
+
+        if ($user['role'] !== 'student') {
+            $session->setFlash('error', 'Accès réservé aux étudiants');
+            return App::$app->response->redirect('/');
+        }
+
+        return $user;
+    }
+
+    /**
      * Affiche le tableau de bord étudiant
      */
     public function dashboard() {
-        // Vérifier les autorisations
-        if ($this->requireRole('student') !== true) {
-            return;
-        }
+        $user = $this->requireStudentAuth();
+        if (!is_array($user)) return $user; // C'est une redirection
 
-        $user = $this->getCurrentUser();
         $student = $this->studentModel->findById($user['id']);
 
-        // Données pour le tableau de bord
-        $applications = $this->applicationModel->findByStudentId($user['id'], 5);
-        $wishlist = $this->wishlistModel->getWishlist($user['id']);
-        $recommendedInternships = $this->internshipModel->search(['limit' => 3]);
+        // Récupérer les candidatures récentes (limité à 5)
+        $recentApplications = $this->applicationModel->findByStudentId($user['id'], 5);
+
+        // Récupérer la wishlist
+        $wishlist = $this->wishlistModel->getWishlist($user['id'], 5);
+
+        // Récupérer des stages recommandés
+        $recommendedInternships = $this->internshipModel->findAll(3);
 
         // Statistiques pour les widgets
         $stats = $this->applicationModel->getApplicationStatistics($user['id']);
@@ -46,14 +70,19 @@ class StudentController extends Controller {
         $profileTasks = $this->getProfileCompletionTasks($student);
         $profileCompletion = $this->calculateProfileCompletion($profileTasks);
 
-        return $this->renderWithLayout('student/dashboard', 'dashboard', [
+        // Générer un token CSRF
+        $csrf_token = SecurityHelper::generateCSRFToken();
+
+        return $this->template->renderWithLayout('student/dashboard', 'dashboard', [
             'student' => $student,
-            'applications' => $applications,
+            'recentApplications' => $recentApplications,
             'wishlist' => $wishlist,
             'recommendedInternships' => $recommendedInternships,
             'stats' => $stats,
             'profileTasks' => $profileTasks,
-            'profileCompletion' => $profileCompletion
+            'profileCompletion' => $profileCompletion,
+            'user' => $user,
+            'csrf_token' => $csrf_token
         ]);
     }
 
@@ -61,72 +90,18 @@ class StudentController extends Controller {
      * Affiche le profil de l'étudiant
      */
     public function profile() {
-        if ($this->requireRole('student') !== true) {
-            return;
-        }
+        $user = $this->requireStudentAuth();
+        if (!is_array($user)) return $user; // C'est une redirection
 
-        $user = $this->getCurrentUser();
         $student = $this->studentModel->findById($user['id']);
 
-        return $this->renderWithLayout('student/profile', 'dashboard', [
-            'student' => $student
-        ]);
-    }
+        // Générer un token CSRF
+        $csrf_token = SecurityHelper::generateCSRFToken();
 
-    /**
-     * Met à jour le profil de l'étudiant
-     */
-    public function updateProfile() {
-        if ($this->requireRole('student') !== true) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Accès non autorisé'
-            ], 403);
-        }
-
-        $data = $this->request->getBody();
-        $user = $this->getCurrentUser();
-
-        // Mettre à jour les informations de base
-        $result = $this->session->db->update('Account', [
-            'Username' => $data['Username'],
-            'Email' => $data['Email'],
-            'Civility' => $data['Civility'] ?? null
-        ], 'ID_account = ?', [$user['id']]);
-
-        // Mettre à jour les informations spécifiques à l'étudiant
-        $this->studentModel->update($user['id'], [
-            'Licence' => isset($data['Licence']) ? 1 : 0,
-            'Majority' => $data['Majority'] ?? null,
-            'promotion' => $data['promotion'] ?? null,
-            'school_name' => $data['school_name'] ?? null,
-            'study_field' => $data['study_field'] ?? null
-        ]);
-
-        // Gérer l'upload du CV si fourni
-        $cvFile = $this->request->getFile('cv');
-        if ($cvFile && $cvFile['error'] === UPLOAD_ERR_OK) {
-            $result = $this->studentModel->uploadCV($user['id'], $cvFile);
-            if (!$result['success']) {
-                return $this->json([
-                    'success' => false,
-                    'message' => $result['error']
-                ], 400);
-            }
-        }
-
-        // Mettre à jour les données de session
-        $updatedStudent = $this->studentModel->findById($user['id']);
-        $this->session->set('user', [
-            'id' => $updatedStudent['ID_account'],
-            'email' => $updatedStudent['Email'],
-            'username' => $updatedStudent['Username'],
-            'role' => 'student'
-        ]);
-
-        return $this->json([
-            'success' => true,
-            'message' => 'Profil mis à jour avec succès'
+        return $this->template->renderWithLayout('student/profile', 'dashboard', [
+            'student' => $student,
+            'user' => $user,
+            'csrf_token' => $csrf_token
         ]);
     }
 
@@ -134,31 +109,190 @@ class StudentController extends Controller {
      * Affiche les candidatures de l'étudiant
      */
     public function applications() {
-        if ($this->requireRole('student') !== true) {
-            return;
-        }
+        $user = $this->requireStudentAuth();
+        if (!is_array($user)) return $user; // C'est une redirection
 
-        $user = $this->getCurrentUser();
+        $request = App::$app->request;
 
         // Paramètres de pagination
-        $page = (int)$this->request->get('page', 1);
+        $page = (int)$request->get('page', 1);
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
-        // Récupérer les candidatures
+        // Récupérer les candidatures avec pagination
         $applications = $this->applicationModel->findByStudentId($user['id'], $limit, $offset);
+
+        // Récupérer les statistiques
         $stats = $this->applicationModel->getApplicationStatistics($user['id']);
         $totalApplications = $stats['total'];
 
-        return $this->renderWithLayout('student/applications', 'dashboard', [
+        // Générer un token CSRF
+        $csrf_token = SecurityHelper::generateCSRFToken();
+
+        return $this->template->renderWithLayout('student/applications', 'dashboard', [
             'applications' => $applications,
             'stats' => $stats,
             'pagination' => [
                 'page' => $page,
                 'total_pages' => ceil($totalApplications / $limit),
                 'total_items' => $totalApplications
-            ]
+            ],
+            'user' => $user,
+            'csrf_token' => $csrf_token
         ]);
+    }
+
+    /**
+     * Affiche les détails d'une candidature
+     */
+    public function viewApplication($id) {
+        $user = $this->requireStudentAuth();
+        if (!is_array($user)) return $user; // C'est une redirection
+
+        $session = App::$app->session;
+
+        // Récupérer la candidature
+        $application = $this->applicationModel->findById($id);
+
+        // Vérifier si la candidature existe
+        if (!$application) {
+            $session->setFlash('error', 'Candidature non trouvée');
+            return App::$app->response->redirect('/student/applications');
+        }
+
+        // Vérifier si l'étudiant est autorisé à voir cette candidature
+        if ($application['student_id'] != $user['id']) {
+            $session->setFlash('error', 'Vous n\'êtes pas autorisé à voir cette candidature');
+            return App::$app->response->redirect('/student/applications');
+        }
+
+        // Générer le chemin du CV
+        if (!empty($application['cv_path'])) {
+            $application['cv_url'] = '/uploads/cv/' . $application['cv_path'];
+        }
+
+        // Générer un token CSRF
+        $csrf_token = SecurityHelper::generateCSRFToken();
+
+        return $this->template->renderWithLayout('student/application-details', 'dashboard', [
+            'application' => $application,
+            'user' => $user,
+            'csrf_token' => $csrf_token
+        ]);
+    }
+
+    /**
+     * Affiche la wishlist de l'étudiant
+     */
+    public function wishlist() {
+        $user = $this->requireStudentAuth();
+        if (!is_array($user)) return $user; // C'est une redirection
+
+        $request = App::$app->request;
+
+        // Paramètres de pagination
+        $page = (int)$request->get('page', 1);
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        // Récupérer la wishlist avec pagination
+        $wishlist = $this->wishlistModel->getWishlist($user['id'], $limit, $offset);
+
+        // Compter le nombre total d'éléments
+        $totalItems = $this->wishlistModel->countByStudent($user['id']);
+
+        // Générer un token CSRF
+        $csrf_token = SecurityHelper::generateCSRFToken();
+
+        return $this->template->renderWithLayout('student/wishlist', 'dashboard', [
+            'wishlist' => $wishlist,
+            'pagination' => [
+                'page' => $page,
+                'total_pages' => ceil($totalItems / $limit),
+                'total_items' => $totalItems
+            ],
+            'user' => $user,
+            'csrf_token' => $csrf_token
+        ]);
+    }
+
+    /**
+     * Met à jour le profil de l'étudiant
+     */
+    public function updateProfile() {
+        $user = $this->requireStudentAuth();
+        if (!is_array($user)) return App::$app->response->json(['success' => false, 'message' => 'Authentification requise'], 401);
+
+        $request = App::$app->request;
+        $data = $request->getBody();
+
+        // Validation minimale des données
+        if (empty($data['Username'])) {
+            return App::$app->response->json([
+                'success' => false,
+                'message' => 'Le nom d\'utilisateur est obligatoire'
+            ], 400);
+        }
+
+        try {
+            // Mettre à jour le compte utilisateur
+            $userUpdateResult = App::$app->db->update('Account', [
+                'Username' => $data['Username'],
+                'Email' => $data['Email'] ?? $user['email'],
+                'Civility' => $data['Civility'] ?? null,
+                'updated_at' => date('Y-m-d H:i:s')
+            ], 'ID_account = ?', [$user['id']]);
+
+            // Mettre à jour le profil étudiant
+            $studentUpdateResult = $this->studentModel->update($user['id'], [
+                'promotion' => $data['promotion'] ?? null,
+                'school_name' => $data['school_name'] ?? null,
+                'study_field' => $data['study_field'] ?? null
+            ]);
+
+            // Gestion du CV
+            $cvFile = $request->getFile('cv');
+            if ($cvFile && $cvFile['error'] === UPLOAD_ERR_OK) {
+                $uploadResult = FileHelper::uploadFile($cvFile, 'cv');
+                if ($uploadResult['success']) {
+                    $this->studentModel->update($user['id'], [
+                        'CV' => $uploadResult['filename']
+                    ]);
+                } else {
+                    return App::$app->response->json([
+                        'success' => false,
+                        'message' => $uploadResult['error']
+                    ], 400);
+                }
+            }
+
+            // Mettre à jour la session
+            App::$app->session->set('user', [
+                'id' => $user['id'],
+                'username' => $data['Username'],
+                'email' => $data['Email'] ?? $user['email'],
+                'role' => 'student'
+            ]);
+
+            return App::$app->response->json([
+                'success' => true,
+                'message' => 'Profil mis à jour avec succès'
+            ]);
+        } catch (\Exception $e) {
+            // Log l'erreur
+            if (isset(App::$app->logger)) {
+                App::$app->logger->logError([
+                    'type' => 'Profile Update Error',
+                    'message' => $e->getMessage(),
+                    'user_id' => $user['id']
+                ]);
+            }
+
+            return App::$app->response->json([
+                'success' => false,
+                'message' => 'Une erreur est survenue lors de la mise à jour du profil'
+            ], 500);
+        }
     }
 
     /**
@@ -177,10 +311,6 @@ class StudentController extends Controller {
             [
                 'name' => 'CV',
                 'completed' => !empty($student['CV'])
-            ],
-            [
-                'name' => 'Compétences',
-                'completed' => false // À implémenter avec une table de compétences étudiantes
             ],
             [
                 'name' => 'Photo de profil',

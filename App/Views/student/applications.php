@@ -2,6 +2,30 @@
 // Définir le titre et la page courante
 $title = 'Mes candidatures';
 $current_page = 'applications';
+
+// Vérification des variables requises
+if (!isset($applications)) {
+    $applications = [];
+}
+
+if (!isset($stats) || !is_array($stats)) {
+    $stats = [
+        'total' => 0,
+        'pending' => 0,
+        'in-review' => 0,
+        'interview' => 0,
+        'accepted' => 0,
+        'rejected' => 0
+    ];
+}
+
+if (!isset($pagination) || !is_array($pagination)) {
+    $pagination = [
+        'page' => 1,
+        'total_pages' => 1,
+        'total_items' => 0
+    ];
+}
 ?>
 
 <link rel="stylesheet" href="/Asset/Css/main.css">
@@ -83,20 +107,20 @@ $current_page = 'applications';
                 </div>
             <?php else: ?>
                 <?php foreach ($applications as $application): ?>
-                    <div class="application-item" data-status="<?= $application['status'] ?>">
+                    <div class="application-item" data-status="<?= htmlspecialchars($application['status'] ?? '') ?>">
                         <div class="application-info">
-                            <h3><?= htmlspecialchars($application['Offer_title']) ?></h3>
-                            <p class="company-name"><?= htmlspecialchars($application['company_name']) ?></p>
+                            <h3><?= htmlspecialchars($application['Offer_title'] ?? 'Titre non disponible') ?></h3>
+                            <p class="company-name"><?= htmlspecialchars($application['company_name'] ?? 'Entreprise non spécifiée') ?></p>
                             <div class="application-details-sm">
-                                <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($application['location']) ?></span>
-                                <span><i class="fas fa-calendar"></i> <?= date('d/m/Y', strtotime($application['created_at'])) ?></span>
+                                <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($application['location'] ?? 'Non spécifié') ?></span>
+                                <span><i class="fas fa-calendar"></i> <?= isset($application['created_at']) ? date('d/m/Y', strtotime($application['created_at'])) : 'Date inconnue' ?></span>
                             </div>
                         </div>
                         <div class="application-status">
-                            <span class="status-badge <?= $application['status'] ?>"><?= htmlspecialchars($application['status_label']) ?></span>
+                            <span class="status-badge <?= htmlspecialchars($application['status'] ?? '') ?>"><?= htmlspecialchars($application['status_label'] ?? 'Statut inconnu') ?></span>
                         </div>
                         <div class="application-actions">
-                            <a href="/applications/<?= $application['id'] ?>" class="btn btn-outline btn-sm">Voir détails</a>
+                            <a href="/applications/<?= (int)($application['id'] ?? 0) ?>" class="btn btn-outline btn-sm">Voir détails</a>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -111,12 +135,12 @@ $current_page = 'applications';
                 </a>
 
                 <?php for ($i = 1; $i <= $pagination['total_pages']; $i++): ?>
-                    <?php if ($i === 1 || $i === $pagination['total_pages'] || abs($i - $pagination['page']) <= 2): ?>
+                    <?php if ($i === 1 || $i === $pagination['total_pages'] || abs($i - $pagination['page']) < 2): ?>
                         <a href="/applications?page=<?= $i ?>"
                            class="pagination-item <?= $pagination['page'] === $i ? 'active' : '' ?>">
                             <?= $i ?>
                         </a>
-                    <?php elseif (abs($i - $pagination['page']) === 3): ?>
+                    <?php elseif (abs($i - $pagination['page']) === 2): ?>
                         <span class="pagination-ellipsis">...</span>
                     <?php endif; ?>
                 <?php endfor; ?>
@@ -165,12 +189,12 @@ $current_page = 'applications';
                 const searchTerm = this.value.toLowerCase();
 
                 applicationItems.forEach(item => {
-                    const title = item.querySelector('h3').textContent.toLowerCase();
-                    const company = item.querySelector('.company-name').textContent.toLowerCase();
+                    const title = item.querySelector('h3')?.textContent.toLowerCase() || '';
+                    const company = item.querySelector('.company-name')?.textContent.toLowerCase() || '';
 
                     if (title.includes(searchTerm) || company.includes(searchTerm)) {
                         // Aussi vérifier le filtre actif
-                        const activeFilter = document.querySelector('.filter-tab.active').dataset.filter;
+                        const activeFilter = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
                         if (activeFilter === 'all' || item.dataset.status === activeFilter) {
                             item.style.display = 'flex';
                         } else {
@@ -207,10 +231,13 @@ $current_page = 'applications';
                     applicationsContainer.appendChild(emptyState);
 
                     // Ajouter l'événement au bouton de réinitialisation
-                    emptyState.querySelector('.reset-filters').addEventListener('click', function() {
-                        document.querySelector('.filter-tab[data-filter="all"]').click();
-                        if (searchInput) searchInput.value = '';
-                    });
+                    const resetButton = emptyState.querySelector('.reset-filters');
+                    if (resetButton) {
+                        resetButton.addEventListener('click', function() {
+                            document.querySelector('.filter-tab[data-filter="all"]').click();
+                            if (searchInput) searchInput.value = '';
+                        });
+                    }
                 }
             } else if (existingEmptyState && (visibleItems.length > 0 || document.querySelector('.empty-state:not(.empty-state-search)'))) {
                 applicationsContainer.removeChild(existingEmptyState);
