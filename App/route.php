@@ -1,7 +1,7 @@
 ﻿<?php
 /**
  * Fichier de définition des routes pour l'application LeBonPlan
- * Version modifiée avec correction de routes pour les applications
+ * Version simplifiée avec regroupement par fonctionnalité
  */
 
 namespace App;
@@ -20,10 +20,11 @@ function registerRoutes(App $app) {
 
     // Middlewares
     $csrfMiddleware = new \App\Middleware\CsrfMiddleware();
-    $authMiddleware = new \App\Middleware\AuthMiddleware(['student', 'pilot', 'admin']);
+    $authMiddleware = new \App\Middleware\AuthMiddleware(['student', 'pilot', 'admin', 'company']);
     $adminMiddleware = new \App\Middleware\AuthMiddleware(['admin']);
     $adminPilotMiddleware = new \App\Middleware\AuthMiddleware(['admin', 'pilot']);
     $studentMiddleware = new \App\Middleware\AuthMiddleware(['student']);
+    $companyMiddleware = new \App\Middleware\AuthMiddleware(['company']);
 
     // Regrouper les routes par fonctionnalité
     registerPublicRoutes($router, $csrfMiddleware);
@@ -31,6 +32,8 @@ function registerRoutes(App $app) {
     registerStudentRoutes($router, $studentMiddleware, $csrfMiddleware);
     registerAdminRoutes($router, $adminMiddleware, $csrfMiddleware);
     registerPilotRoutes($router, $adminPilotMiddleware, $csrfMiddleware);
+    registerCompanyRoutes($router, $companyMiddleware, $csrfMiddleware);
+    registerApplicationRoutes($router, $authMiddleware, $csrfMiddleware, $studentMiddleware);
 }
 
 /**
@@ -72,6 +75,12 @@ function registerAuthRoutes($router, $csrfMiddleware) {
 
     // Déconnexion (protégée par un middleware d'authentification)
     $router->get('/logout', [\App\Controllers\AuthController::class, 'logout'], [new \App\Middleware\AuthMiddleware()]);
+
+    // Récupération de mot de passe
+    $router->get('/forgot-password', [\App\Controllers\AuthController::class, 'forgotPassword']);
+    $router->post('/forgot-password', [\App\Controllers\AuthController::class, 'sendResetLink'], [$csrfMiddleware]);
+    $router->get('/reset-password/{token}', [\App\Controllers\AuthController::class, 'resetPassword']);
+    $router->post('/reset-password', [\App\Controllers\AuthController::class, 'updatePassword'], [$csrfMiddleware]);
 }
 
 /**
@@ -85,19 +94,29 @@ function registerStudentRoutes($router, $studentMiddleware, $csrfMiddleware) {
     $router->get('/student/profile', [\App\Controllers\StudentController::class, 'profile'], [$studentMiddleware]);
     $router->post('/student/profile/update', [\App\Controllers\StudentController::class, 'updateProfile'], [$studentMiddleware, $csrfMiddleware]);
 
-    // Candidatures d'étudiant
+    // Candidatures
     $router->get('/student/applications', [\App\Controllers\StudentController::class, 'applications'], [$studentMiddleware]);
-    $router->get('/applications/{id}', [\App\Controllers\ApplicationController::class, 'show'], [$authMiddleware]);
-    $router->get('/applications/download-cv/{id}', [\App\Controllers\ApplicationController::class, 'downloadCV'], [$authMiddleware]);
-    $router->post('/applications/update-status', [\App\Controllers\ApplicationController::class, 'updateStatus'], [$authMiddleware, $csrfMiddleware]);
-    $router->post('/applications/add-note', [\App\Controllers\ApplicationController::class, 'addNote'], [$authMiddleware, $csrfMiddleware]);
-    $router->post('/apply', [\App\Controllers\ApplicationController::class, 'apply'], [$studentMiddleware, $csrfMiddleware]);
 
     // Wishlist (favoris)
     $router->get('/student/wishlist', [\App\Controllers\WishlistController::class, 'index'], [$studentMiddleware]);
     $router->post('/wishlist/add', [\App\Controllers\WishlistController::class, 'addToWishlist'], [$studentMiddleware, $csrfMiddleware]);
     $router->post('/wishlist/remove', [\App\Controllers\WishlistController::class, 'removeFromWishlist'], [$studentMiddleware, $csrfMiddleware]);
-    $router->get('/wishlist/check', [\App\Controllers\WishlistController::class, 'checkWishlist'], [$studentMiddleware]);
+    $router->post('/wishlist/check', [\App\Controllers\WishlistController::class, 'checkWishlist'], [$studentMiddleware, $csrfMiddleware]);
+}
+
+/**
+ * Routes pour les candidatures
+ */
+function registerApplicationRoutes($router, $authMiddleware, $csrfMiddleware, $studentMiddleware) {
+    // Affichage et gestion des candidatures
+    $router->get('/applications', [\App\Controllers\ApplicationController::class, 'index'], [$authMiddleware]);
+    $router->get('/applications/{id}', [\App\Controllers\ApplicationController::class, 'show'], [$authMiddleware]);
+    $router->post('/applications/update-status', [\App\Controllers\ApplicationController::class, 'updateStatus'], [$authMiddleware, $csrfMiddleware]);
+    $router->post('/applications/add-note', [\App\Controllers\ApplicationController::class, 'addNote'], [$authMiddleware, $csrfMiddleware]);
+    $router->get('/applications/download-cv/{id}', [\App\Controllers\ApplicationController::class, 'downloadCV'], [$authMiddleware]);
+
+    // Postuler à une offre
+    $router->post('/apply', [\App\Controllers\ApplicationController::class, 'apply'], [$studentMiddleware, $csrfMiddleware]);
 }
 
 /**
@@ -148,4 +167,23 @@ function registerPilotRoutes($router, $adminPilotMiddleware, $csrfMiddleware) {
 
     // Statistiques
     $router->get('/pilot/statistics', [\App\Controllers\PilotController::class, 'statistics'], [$adminPilotMiddleware]);
+}
+
+/**
+ * Routes pour les entreprises
+ */
+function registerCompanyRoutes($router, $companyMiddleware, $csrfMiddleware) {
+    // Dashboard entreprise
+    $router->get('/company/dashboard', [\App\Controllers\CompanyController::class, 'dashboard'], [$companyMiddleware]);
+
+    // Gestion des offres
+    $router->get('/company/offers', [\App\Controllers\CompanyController::class, 'offers'], [$companyMiddleware]);
+    $router->get('/company/offers/create', [\App\Controllers\CompanyController::class, 'createOffer'], [$companyMiddleware]);
+    $router->post('/company/offers/store', [\App\Controllers\CompanyController::class, 'storeOffer'], [$companyMiddleware, $csrfMiddleware]);
+    $router->get('/company/offers/{id}', [\App\Controllers\CompanyController::class, 'showOffer'], [$companyMiddleware]);
+    $router->post('/company/offers/update/{id}', [\App\Controllers\CompanyController::class, 'updateOffer'], [$companyMiddleware, $csrfMiddleware]);
+    $router->post('/company/offers/delete/{id}', [\App\Controllers\CompanyController::class, 'deleteOffer'], [$companyMiddleware, $csrfMiddleware]);
+
+    // Gestion des candidatures
+    $router->get('/company/applications', [\App\Controllers\ApplicationController::class, 'companyApplications'], [$companyMiddleware]);
 }
