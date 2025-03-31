@@ -6,10 +6,9 @@ use App\Core\Database;
 class Application {
     private $db;
 
-    // Statuts possibles d'une candidature
+    // Statuts possibles d'une candidature (simplifiés)
     const STATUS_PENDING = 'pending';
     const STATUS_IN_REVIEW = 'in-review';
-    const STATUS_INTERVIEW = 'interview';
     const STATUS_ACCEPTED = 'accepted';
     const STATUS_REJECTED = 'rejected';
 
@@ -17,7 +16,6 @@ class Application {
     public static $statusLabels = [
         self::STATUS_PENDING => 'En attente',
         self::STATUS_IN_REVIEW => 'En cours d\'examen',
-        self::STATUS_INTERVIEW => 'Entretien',
         self::STATUS_ACCEPTED => 'Acceptée',
         self::STATUS_REJECTED => 'Refusée'
     ];
@@ -29,7 +27,7 @@ class Application {
     /**
      * Crée une nouvelle candidature
      */
-    public function create($studentId, $offerId, $coverLetter, $cvPath, $status = self::STATUS_PENDING) {
+    public function create($studentId, $offerId, $coverLetter, $cvPath) {
         // Vérifier si l'étudiant a déjà postulé à cette offre
         if ($this->hasStudentApplied($studentId, $offerId)) {
             return [
@@ -43,14 +41,11 @@ class Application {
             'offer_id' => $offerId,
             'cover_letter' => $coverLetter,
             'cv_path' => $cvPath,
-            'status' => $status,
+            'status' => self::STATUS_PENDING,
             'created_at' => date('Y-m-d H:i:s')
         ]);
 
         if ($applicationId) {
-            // Enregistrer l'historique de statut
-            $this->addStatusHistory($applicationId, $status, 'Candidature créée');
-
             return [
                 'success' => true,
                 'id' => $applicationId,
@@ -95,11 +90,6 @@ class Application {
         foreach ($applications as &$application) {
             $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
             $application['time_ago'] = $this->getTimeAgo($application['created_at']);
-
-            // Formatter la date d'entretien si elle existe
-            if (!empty($application['interview_date'])) {
-                $application['interview_date_formatted'] = date('d/m/Y à H:i', strtotime($application['interview_date']));
-            }
         }
 
         return $applications;
@@ -134,74 +124,6 @@ class Application {
         foreach ($applications as &$application) {
             $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
             $application['time_ago'] = $this->getTimeAgo($application['created_at']);
-
-            // Formatter la date d'entretien si elle existe
-            if (!empty($application['interview_date'])) {
-                $application['interview_date_formatted'] = date('d/m/Y à H:i', strtotime($application['interview_date']));
-            }
-        }
-
-        return $applications;
-    }
-
-    /**
-     * Récupère les candidatures pour une entreprise donnée
-     */
-    public function findByCompanyId($companyId, $limit = null, $offset = 0, $filters = []) {
-        $sql = "
-            SELECT a.*, 
-                acc.Username as student_name, acc.Email as student_email,
-                s.CV, s.promotion, s.school_name, s.study_field,
-                o.Offer_title, o.Description as offer_description, 
-                o.location, o.Starting_internship_date, o.monthly_remuneration,
-                o.internship_duration
-            FROM applications a
-            JOIN Offers o ON a.offer_id = o.ID_Offer
-            JOIN Student s ON a.student_id = s.ID_account
-            JOIN Account acc ON s.ID_account = acc.ID_account
-            WHERE o.ID_Company = ?
-        ";
-
-        $params = [$companyId];
-
-        // Ajouter les filtres
-        if (!empty($filters['status'])) {
-            $sql .= " AND a.status = ?";
-            $params[] = $filters['status'];
-        }
-
-        if (!empty($filters['offer_id'])) {
-            $sql .= " AND a.offer_id = ?";
-            $params[] = $filters['offer_id'];
-        }
-
-        if (!empty($filters['search'])) {
-            $search = "%{$filters['search']}%";
-            $sql .= " AND (acc.Username LIKE ? OR o.Offer_title LIKE ? OR acc.Email LIKE ?)";
-            $params[] = $search;
-            $params[] = $search;
-            $params[] = $search;
-        }
-
-        $sql .= " ORDER BY a.created_at DESC";
-
-        if ($limit !== null) {
-            $sql .= " LIMIT ? OFFSET ?";
-            $params[] = $limit;
-            $params[] = $offset;
-        }
-
-        $applications = $this->db->fetchAll($sql, $params);
-
-        // Ajouter les labels pour les statuts
-        foreach ($applications as &$application) {
-            $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
-            $application['time_ago'] = $this->getTimeAgo($application['created_at']);
-
-            // Formatter la date d'entretien si elle existe
-            if (!empty($application['interview_date'])) {
-                $application['interview_date_formatted'] = date('d/m/Y à H:i', strtotime($application['interview_date']));
-            }
         }
 
         return $applications;
@@ -210,7 +132,7 @@ class Application {
     /**
      * Met à jour le statut d'une candidature
      */
-    public function updateStatus($applicationId, $status, $feedback = null, $interviewDate = null) {
+    public function updateStatus($applicationId, $status, $feedback = null) {
         $data = [
             'status' => $status,
             'updated_at' => date('Y-m-d H:i:s')
@@ -220,16 +142,9 @@ class Application {
             $data['feedback'] = $feedback;
         }
 
-        if ($interviewDate && $status === self::STATUS_INTERVIEW) {
-            $data['interview_date'] = $interviewDate;
-        }
-
         $result = $this->db->update('applications', $data, 'id = ?', [$applicationId]);
 
         if ($result) {
-            // Enregistrer l'historique de statut
-            $this->addStatusHistory($applicationId, $status, $feedback);
-
             return [
                 'success' => true,
                 'message' => 'Statut de la candidature mis à jour avec succès'
@@ -240,38 +155,6 @@ class Application {
             'success' => false,
             'message' => 'Erreur lors de la mise à jour du statut'
         ];
-    }
-
-    /**
-     * Ajoute une entrée dans l'historique des statuts
-     */
-    private function addStatusHistory($applicationId, $status, $comment = null) {
-        return $this->db->insert('application_status_history', [
-            'application_id' => $applicationId,
-            'status' => $status,
-            'comment' => $comment,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
-    }
-
-    /**
-     * Récupère l'historique des statuts d'une candidature
-     */
-    public function getStatusHistory($applicationId) {
-        $history = $this->db->fetchAll("
-            SELECT ash.*
-            FROM application_status_history ash
-            WHERE ash.application_id = ?
-            ORDER BY ash.created_at DESC
-        ", [$applicationId]);
-
-        // Ajouter les labels pour les statuts
-        foreach ($history as &$item) {
-            $item['status_label'] = self::$statusLabels[$item['status']] ?? 'Inconnu';
-            $item['time_ago'] = $this->getTimeAgo($item['created_at']);
-        }
-
-        return $history;
     }
 
     /**
@@ -295,14 +178,6 @@ class Application {
         if ($application) {
             $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
             $application['time_ago'] = $this->getTimeAgo($application['created_at']);
-
-            // Formatter la date d'entretien si elle existe
-            if (!empty($application['interview_date'])) {
-                $application['interview_date_formatted'] = date('d/m/Y à H:i', strtotime($application['interview_date']));
-            }
-
-            // Récupérer l'historique des statuts
-            $application['status_history'] = $this->getStatusHistory($id);
         }
 
         return $application;
@@ -338,50 +213,7 @@ class Application {
             $stats[strtolower($status)] = $this->db->fetch($statusQuery, $statusParams)['count'];
         }
 
-        // Candidatures récentes
-        if ($userId && $role === 'student') {
-            $stats['recent_activity'] = $this->findByStudentId($userId, 5);
-        } elseif ($userId && $role === 'company') {
-            $stats['recent_activity'] = $this->findByCompanyId($userId, 5);
-        } else {
-            $stats['recent_activity'] = $this->getRecentApplications(5);
-        }
-
-        // Taux de succès (pour les étudiants)
-        if ($userId && $role === 'student' && $stats['total'] > 0) {
-            $stats['success_rate'] = round(($stats['accepted'] / $stats['total']) * 100, 1);
-        }
-
-        // Temps moyen de réponse (pour les entreprises)
-        if ($userId && $role === 'company') {
-            $averageTimeQuery = "
-                SELECT AVG(TIMESTAMPDIFF(DAY, a.created_at, a.updated_at)) as avg_time
-                FROM applications a
-                JOIN Offers o ON a.offer_id = o.ID_Offer
-                WHERE o.ID_Company = ? AND a.status != 'pending' AND a.updated_at IS NOT NULL
-            ";
-            $avgTime = $this->db->fetch($averageTimeQuery, [$userId]);
-            $stats['average_response_time'] = $avgTime['avg_time'] ? round($avgTime['avg_time'], 1) : 0;
-        }
-
         return $stats;
-    }
-
-    /**
-     * Récupère les candidatures récentes
-     */
-    public function getRecentApplications($limit = 10) {
-        return $this->db->fetchAll("
-            SELECT a.*, 
-                o.Offer_title, c.Name as company_name, 
-                acc.Username as student_name
-            FROM applications a
-            JOIN Offers o ON a.offer_id = o.ID_Offer
-            JOIN Company c ON o.ID_Company = c.ID_Company
-            JOIN Account acc ON a.student_id = acc.ID_account
-            ORDER BY a.created_at DESC
-            LIMIT ?
-        ", [$limit]);
     }
 
     /**
@@ -401,36 +233,7 @@ class Application {
      * Supprime une candidature
      */
     public function delete($id) {
-        // Supprimer l'historique des statuts d'abord
-        $this->db->delete('application_status_history', 'application_id = ?', [$id]);
-
-        // Supprimer la candidature
         return $this->db->delete('applications', 'id = ?', [$id]);
-    }
-
-    /**
-     * Ajoute une note à une candidature
-     */
-    public function addNote($applicationId, $userId, $content) {
-        return $this->db->insert('application_notes', [
-            'application_id' => $applicationId,
-            'user_id' => $userId,
-            'content' => $content,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
-    }
-
-    /**
-     * Récupère les notes d'une candidature
-     */
-    public function getNotes($applicationId) {
-        return $this->db->fetchAll("
-            SELECT an.*, acc.Username as author_name
-            FROM application_notes an
-            JOIN Account acc ON an.user_id = acc.ID_account
-            WHERE an.application_id = ?
-            ORDER BY an.created_at DESC
-        ", [$applicationId]);
     }
 
     /**

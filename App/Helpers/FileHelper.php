@@ -1,22 +1,16 @@
 ﻿<?php
 namespace App\Helpers;
 
-use App\Core\App;
-
 class FileHelper {
     private static $allowedExtensions = [
         'pdf' => ['application/pdf'],
         'doc' => ['application/msword'],
-        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-        'jpg' => ['image/jpeg'],
-        'jpeg' => ['image/jpeg'],
-        'png' => ['image/png'],
-        'gif' => ['image/gif']
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document']
     ];
 
-    private static $maxFileSize = 5242880; // 5 MB par défaut
+    private static $maxFileSize = 5242880; // 5 MB
 
-    public static function uploadFile($file, $directory = '', $allowedTypes = null, $maxSize = null) {
+    public static function uploadFile($file, $directory = '') {
         if ($file['error'] !== UPLOAD_ERR_OK) {
             return [
                 'success' => false,
@@ -30,29 +24,26 @@ class FileHelper {
         $fileType = $file['type'];
 
         // Valider la taille du fichier
-        $maxSize = $maxSize ?: self::$maxFileSize;
-        if ($fileSize > $maxSize) {
+        if ($fileSize > self::$maxFileSize) {
             return [
                 'success' => false,
-                'error' => 'Le fichier dépasse la taille maximale autorisée (' . self::formatFileSize($maxSize) . ').'
+                'error' => 'Le fichier dépasse la taille maximale autorisée.'
             ];
         }
 
         $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
         // Valider le type de fichier
-        $allowedTypes = $allowedTypes ?: self::$allowedExtensions;
-
-        if (!isset($allowedTypes[$fileExtension])) {
+        if (!isset(self::$allowedExtensions[$fileExtension])) {
             return [
                 'success' => false,
-                'error' => 'Type de fichier non autorisé. Types acceptés: ' . implode(', ', array_keys($allowedTypes))
+                'error' => 'Type de fichier non autorisé. Types acceptés: ' . implode(', ', array_keys(self::$allowedExtensions))
             ];
         }
 
         // Vérifier le type MIME réel du fichier
         $realMimeType = mime_content_type($fileTmpName);
-        if (!in_array($realMimeType, $allowedTypes[$fileExtension])) {
+        if (!in_array($realMimeType, self::$allowedExtensions[$fileExtension])) {
             return [
                 'success' => false,
                 'error' => 'Le contenu du fichier ne correspond pas à son extension.'
@@ -60,7 +51,7 @@ class FileHelper {
         }
 
         // Vérifier et créer le répertoire de destination
-        $uploadDir = App::$app->config->get('uploads.upload_path', __DIR__ . '/../../storage/uploads/');
+        $uploadDir = __DIR__ . '/../../storage/uploads/';
         $targetDir = $uploadDir . $directory;
 
         if (!is_dir($targetDir)) {
@@ -73,7 +64,7 @@ class FileHelper {
         }
 
         // Générer un nom de fichier unique pour éviter les collisions
-        $newFileName = self::generateUniqueFileName($fileExtension);
+        $newFileName = md5(uniqid() . time() . rand(1000, 9999)) . '.' . $fileExtension;
         $targetFile = $targetDir . '/' . $newFileName;
 
         // Déplacer le fichier
@@ -84,29 +75,20 @@ class FileHelper {
             ];
         }
 
-        // Journaliser l'upload
-        App::$app->logger->logActivity("File uploaded: {$newFileName} (original: {$fileName})");
-
         return [
             'success' => true,
             'filename' => $newFileName,
             'original_name' => $fileName,
-            'path' => $targetFile,
-            'relative_path' => $directory . '/' . $newFileName,
-            'size' => $fileSize,
-            'type' => $fileType
+            'path' => $targetFile
         ];
     }
 
     public static function deleteFile($filename, $directory = '') {
-        $uploadDir = App::$app->config->get('uploads.upload_path', __DIR__ . '/../../storage/uploads/');
+        $uploadDir = __DIR__ . '/../../storage/uploads/';
         $filePath = $uploadDir . $directory . '/' . $filename;
 
         if (file_exists($filePath)) {
-            if (unlink($filePath)) {
-                App::$app->logger->logActivity("File deleted: {$filename}");
-                return true;
-            }
+            return unlink($filePath);
         }
 
         return false;
@@ -131,60 +113,5 @@ class FileHelper {
             default:
                 return 'Erreur inconnue lors de l\'upload.';
         }
-    }
-
-    private static function generateUniqueFileName($extension) {
-        return md5(uniqid() . time() . rand(1000, 9999)) . '.' . $extension;
-    }
-
-    private static function formatFileSize($size) {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $i = 0;
-
-        while ($size >= 1024 && $i < count($units) - 1) {
-            $size /= 1024;
-            $i++;
-        }
-
-        return round($size, 2) . ' ' . $units[$i];
-    }
-
-    public static function getFileTypeIcon($filename) {
-        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-        switch ($extension) {
-            case 'pdf':
-                return '<i class="fas fa-file-pdf"></i>';
-            case 'doc':
-            case 'docx':
-                return '<i class="fas fa-file-word"></i>';
-            case 'xls':
-            case 'xlsx':
-                return '<i class="fas fa-file-excel"></i>';
-            case 'ppt':
-            case 'pptx':
-                return '<i class="fas fa-file-powerpoint"></i>';
-            case 'jpg':
-            case 'jpeg':
-            case 'png':
-            case 'gif':
-                return '<i class="fas fa-file-image"></i>';
-            default:
-                return '<i class="fas fa-file"></i>';
-        }
-    }
-
-    public static function isFileExists($filename, $directory = '') {
-        $uploadDir = App::$app->config->get('uploads.upload_path', __DIR__ . '/../../storage/uploads/');
-        $filePath = $uploadDir . $directory . '/' . $filename;
-
-        return file_exists($filePath);
-    }
-
-    public static function getFileUrl($filename, $directory = '') {
-        $baseUrl = App::$app->config->get('app.url');
-        $uploadsUrl = App::$app->config->get('uploads.url_path', '/uploads');
-
-        return $baseUrl . $uploadsUrl . '/' . $directory . '/' . $filename;
     }
 }

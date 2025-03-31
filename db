@@ -1,0 +1,372 @@
+﻿-- Création de la base de données
+CREATE DATABASE IF NOT EXISTS aqghqfnk_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE aqghqfnk_test;
+
+-- Table des comptes utilisateurs
+CREATE TABLE Account (
+    ID_account INT AUTO_INCREMENT PRIMARY KEY,
+    Username VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) NOT NULL UNIQUE,
+    Password VARCHAR(255) NOT NULL,
+    Civility ENUM('M', 'Mme', 'Autre') NULL,
+    _Rank INT NOT NULL DEFAULT 1 COMMENT '1=student, 2=pilot, 3=admin',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL,
+    last_login DATETIME NULL
+);
+
+-- Table des secteurs d'activité
+CREATE TABLE Sector_Of_Activity (
+    ID_Sector INT AUTO_INCREMENT PRIMARY KEY,
+    Sector VARCHAR(100) NOT NULL
+);
+
+-- Table des niveaux d'études
+CREATE TABLE Level_Of_Study (
+    ID_level INT AUTO_INCREMENT PRIMARY KEY,
+    Study_level VARCHAR(50) NOT NULL
+);
+
+-- Table des compétences
+CREATE TABLE Skills (
+    ID_skill INT AUTO_INCREMENT PRIMARY KEY,
+    Skill_name VARCHAR(100) NOT NULL,
+    Category VARCHAR(50) NULL
+);
+
+-- Table des centres de formation
+CREATE TABLE Center (
+    ID_Center INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    City VARCHAR(100) NOT NULL,
+    Address VARCHAR(255) NULL,
+    Email VARCHAR(100) NULL,
+    Phone VARCHAR(20) NULL
+);
+
+-- Table des entreprises
+CREATE TABLE Company (
+    ID_Company INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Description TEXT NULL,
+    ID_Sector INT NULL,
+    Adresse VARCHAR(255) NULL,
+    Size VARCHAR(50) NULL COMMENT 'Taille de l''entreprise: startup, pme, eti, grande',
+    Email VARCHAR(100) NULL,
+    Phone VARCHAR(20) NULL,
+    Website VARCHAR(255) NULL,
+    Logo VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL,
+    FOREIGN KEY (ID_Sector) REFERENCES Sector_Of_Activity(ID_Sector) ON DELETE SET NULL
+);
+
+-- Table des offres de stage
+CREATE TABLE Offers (
+    ID_Offer INT AUTO_INCREMENT PRIMARY KEY,
+    ID_Company INT NOT NULL,
+    Offer_title VARCHAR(255) NOT NULL,
+    Description TEXT NOT NULL,
+    Nomber_of_remaining_internship_places INT NOT NULL DEFAULT 1,
+    Date_of_publication DATE NOT NULL,
+    ID_level INT NULL,
+    Starting_internship_date DATE NULL,
+    internship_duration VARCHAR(50) NULL,
+    monthly_remuneration DECIMAL(10, 2) NULL,
+    location VARCHAR(255) NULL,
+    remote_possible TINYINT(1) NOT NULL DEFAULT 0,
+    status ENUM('active', 'pending', 'filled', 'expired') NOT NULL DEFAULT 'active',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL,
+    FOREIGN KEY (ID_Company) REFERENCES Company(ID_Company) ON DELETE CASCADE,
+    FOREIGN KEY (ID_level) REFERENCES Level_Of_Study(ID_level) ON DELETE SET NULL
+);
+
+-- Table des étudiants
+CREATE TABLE Student (
+    ID_account INT PRIMARY KEY,
+    Licence TINYINT(1) NOT NULL DEFAULT 0,
+    Majority DATE NULL,
+    promotion VARCHAR(100) NULL,
+    CV VARCHAR(255) NULL,
+    school_name VARCHAR(100) NULL,
+    study_field VARCHAR(100) NULL,
+    FOREIGN KEY (ID_account) REFERENCES Account(ID_account) ON DELETE CASCADE
+);
+
+-- Table des pilotes
+CREATE TABLE pilote (
+    ID_account INT PRIMARY KEY,
+    Center_ID INT NULL,
+    FOREIGN KEY (ID_account) REFERENCES Account(ID_account) ON DELETE CASCADE,
+    FOREIGN KEY (Center_ID) REFERENCES Center(ID_Center) ON DELETE SET NULL
+);
+
+-- Table des administrateurs
+CREATE TABLE admin (
+    ID_account INT PRIMARY KEY,
+    FOREIGN KEY (ID_account) REFERENCES Account(ID_account) ON DELETE CASCADE
+);
+
+-- Table de liaison entre offres et compétences
+CREATE TABLE offer_skills (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    offer_id INT NOT NULL,
+    skill_id INT NOT NULL,
+    UNIQUE KEY offer_skill (offer_id, skill_id),
+    FOREIGN KEY (offer_id) REFERENCES Offers(ID_Offer) ON DELETE CASCADE,
+    FOREIGN KEY (skill_id) REFERENCES Skills(ID_skill) ON DELETE CASCADE
+);
+
+-- Table des candidatures
+CREATE TABLE applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    offer_id INT NOT NULL,
+    cover_letter TEXT NOT NULL,
+    cv_path VARCHAR(255) NOT NULL,
+    status ENUM('pending', 'in-review', 'interview', 'accepted', 'rejected') NOT NULL DEFAULT 'pending',
+    feedback TEXT NULL,
+    interview_date DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL,
+    FOREIGN KEY (student_id) REFERENCES Student(ID_account) ON DELETE CASCADE,
+    FOREIGN KEY (offer_id) REFERENCES Offers(ID_Offer) ON DELETE CASCADE
+);
+
+-- Table de l'historique des statuts de candidature
+CREATE TABLE application_status_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id INT NOT NULL,
+    status ENUM('pending', 'in-review', 'interview', 'accepted', 'rejected') NOT NULL,
+    comment TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+);
+
+-- Table des notes sur les candidatures
+CREATE TABLE application_notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Account(ID_account) ON DELETE CASCADE
+);
+
+-- Table des favoris (wishlist)
+CREATE TABLE wishlist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    offer_id INT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY student_offer (student_id, offer_id),
+    FOREIGN KEY (student_id) REFERENCES Student(ID_account) ON DELETE CASCADE,
+    FOREIGN KEY (offer_id) REFERENCES Offers(ID_Offer) ON DELETE CASCADE
+);
+
+-- Table des évaluations d'entreprises
+CREATE TABLE company_evaluations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    company_id INT NOT NULL,
+    rating DECIMAL(2, 1) NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT NULL,
+    is_public TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY student_company (student_id, company_id),
+    FOREIGN KEY (student_id) REFERENCES Student(ID_account) ON DELETE CASCADE,
+    FOREIGN KEY (company_id) REFERENCES Company(ID_Company) ON DELETE CASCADE
+);
+
+-- Table des tokens de réinitialisation de mot de passe
+CREATE TABLE password_resets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(100) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Account(ID_account) ON DELETE CASCADE
+);
+
+-- Table des tentatives de connexion (pour la sécurité)
+CREATE TABLE login_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    successful TINYINT(1) NOT NULL DEFAULT 0
+);
+
+-- Insérer des données de base
+
+-- Secteurs d'activité
+INSERT INTO Sector_Of_Activity (Sector) VALUES
+('Informatique & Tech'),
+('Finance & Banque'),
+('Marketing & Communication'),
+('Santé'),
+('Industrie & Ingénierie'),
+('Commerce & Distribution'),
+('Éducation & Formation'),
+('Transport & Logistique'),
+('Énergie & Environnement'),
+('Services & Conseil');
+
+-- Niveaux d'études
+INSERT INTO Level_Of_Study (Study_level) VALUES
+('Bac'),
+('Bac+1'),
+('Bac+2'),
+('Bac+3'),
+('Bac+4'),
+('Bac+5 et plus');
+
+-- Compétences
+INSERT INTO Skills (Skill_name, Category) VALUES
+('JavaScript', 'Développement'),
+('Python', 'Développement'),
+('Java', 'Développement'),
+('PHP', 'Développement'),
+('C#', 'Développement'),
+('SQL', 'Données'),
+('Excel', 'Bureautique'),
+('Communication', 'Soft skills'),
+('Marketing Digital', 'Marketing'),
+('SEO', 'Marketing'),
+('Design UX/UI', 'Design'),
+('Photoshop', 'Design'),
+('React', 'Développement'),
+('Node.js', 'Développement'),
+('Gestion de projet', 'Management');
+
+-- Centres de formation
+INSERT INTO Center (Name, City, Address, Email, Phone)
+VALUES
+('CESI Paris', 'Paris', '93 Boulevard de la Seine, 92000 Nanterre', 'contact.paris@cesi.fr', '01 55 17 80 00'),
+('EPSI Lyon', 'Lyon', '16 rue de Brest, 69002 Lyon', 'contact.lyon@epsi.fr', '04 72 85 38 50');
+
+-- Création de quelques entreprises de test
+INSERT INTO Company (Name, Description, ID_Sector, Adresse, Size, Email, Phone, Website, created_at) VALUES
+('TechDream', 'Startup spécialisée dans le développement d''applications mobiles innovantes.', 1, '15 rue de l''Innovation, 75008 Paris', 'startup', 'contact@techdream.fr', '01 23 45 67 89', 'www.techdream.fr', NOW()),
+('FinanceXpert', 'Cabinet de conseil en finance et gestion de patrimoine.', 2, '28 avenue des Finances, 69002 Lyon', 'pme', 'contact@financexpert.fr', '04 56 78 90 12', 'www.financexpert.fr', NOW()),
+('MarketPulse', 'Agence de marketing digital spécialisée dans les stratégies d''acquisition.', 3, '8 boulevard du Marketing, 44000 Nantes', 'pme', 'hello@marketpulse.fr', '02 34 56 78 90', 'www.marketpulse.fr', NOW()),
+('EcoTech', 'Entreprise spécialisée dans les solutions écologiques pour l''industrie.', 9, '42 rue Verte, 33000 Bordeaux', 'eti', 'contact@ecotech.fr', '05 67 89 01 23', 'www.ecotech.fr', NOW()),
+('MediSoft', 'Développement de logiciels médicaux et solutions e-santé.', 4, '56 avenue de la Santé, 31000 Toulouse', 'pme', 'info@medisoft.fr', '05 12 34 56 78', 'www.medisoft.fr', NOW());
+
+-- Création d'un compte administrateur initial
+INSERT INTO Account (Username, Email, Password, _Rank, created_at)
+VALUES ('Admin', 'admin@lebonplan.fr', '$2y$12$xM8MUhQ2vaxnrgsY60zrU.SknJ70xEq2lB9YhW2CQ6fzkTXy5xGfi', 3, NOW());
+-- Le mot de passe est 'admin123' (hashé avec bcrypt)
+
+-- Créer un profil administrateur
+INSERT INTO admin (ID_account) VALUES (LAST_INSERT_ID());
+
+-- Création d'un compte pilote
+INSERT INTO Account (Username, Email, Password, Civility, _Rank, created_at) VALUES
+('Jean Dupont', 'jean.dupont@cesi.fr', '$2y$12$txG5sbYoMnfBLlZ0YuSgou/r9l88Hkx6mHGmf33UsOk0v0UGvzAfa', 'M', 2, NOW());
+-- Le mot de passe est 'password123' (hashé avec bcrypt)
+
+-- Créer un profil pilote
+INSERT INTO pilote (ID_account, Center_ID) VALUES
+(LAST_INSERT_ID(), 1);
+
+-- Création de quelques utilisateurs étudiants
+INSERT INTO Account (Username, Email, Password, Civility, _Rank, created_at) VALUES
+('Pierre Martin', 'pierre.martin@email.com', '$2y$12$txG5sbYoMnfBLlZ0YuSgou/r9l88Hkx6mHGmf33UsOk0v0UGvzAfa', 'M', 1, NOW()),
+('Marie Dubois', 'marie.dubois@email.com', '$2y$12$txG5sbYoMnfBLlZ0YuSgou/r9l88Hkx6mHGmf33UsOk0v0UGvzAfa', 'Mme', 1, NOW()),
+('Thomas Bernard', 'thomas.bernard@email.com', '$2y$12$txG5sbYoMnfBLlZ0YuSgou/r9l88Hkx6mHGmf33UsOk0v0UGvzAfa', 'M', 1, NOW()),
+('Sophie Leroy', 'sophie.leroy@email.com', '$2y$12$txG5sbYoMnfBLlZ0YuSgou/r9l88Hkx6mHGmf33UsOk0v0UGvzAfa', 'Mme', 1, NOW()),
+('Lucas Mercier', 'lucas.mercier@email.com', '$2y$12$txG5sbYoMnfBLlZ0YuSgou/r9l88Hkx6mHGmf33UsOk0v0UGvzAfa', 'M', 1, NOW());
+-- Le mot de passe est 'password123' (hashé avec bcrypt)
+
+-- Création des profils étudiants (IDs 3-7)
+INSERT INTO Student (ID_account, Licence, Majority, promotion, school_name, study_field) VALUES
+(3, 1, '2002-05-15', 'Master 2023', 'EPITA', 'Informatique'),
+(4, 1, '2001-09-20', 'Bachelor 2023', 'ESG', 'Marketing'),
+(5, 1, '2000-11-10', 'Master 2023', 'ESCP', 'Finance'),
+(6, 1, '2002-03-25', 'Licence 2023', 'Sorbonne', 'Design'),
+(7, 1, '2001-07-05', 'Master 2023', 'CentraleSupélec', 'Ingénierie');
+
+-- Création de quelques offres de test
+INSERT INTO Offers (ID_Company, Offer_title, Description, Date_of_publication, ID_level, Starting_internship_date, internship_duration, monthly_remuneration, location, remote_possible) VALUES
+(1, 'Développeur Full Stack', 'Stage pour participer au développement de nouvelles fonctionnalités sur notre plateforme e-commerce.', CURDATE(), 5, DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '6 mois', 800.00, 'Paris', 1),
+(1, 'UX/UI Designer', 'Conception et amélioration de l''expérience utilisateur de nos applications mobiles.', CURDATE(), 4, DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '4 mois', 700.00, 'Paris', 0),
+(2, 'Assistant Analyste Financier', 'Accompagnement dans l''analyse des données financières et la préparation de rapports.', DATE_SUB(CURDATE(), INTERVAL 5 DAY), 3, DATE_ADD(CURDATE(), INTERVAL 3 MONTH), '6 mois', 900.00, 'Lyon', 0),
+(3, 'Chargé de Marketing Digital', 'Participation à l''élaboration et à la mise en œuvre de campagnes marketing.', DATE_SUB(CURDATE(), INTERVAL 10 DAY), 4, DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '5 mois', 850.00, 'Nantes', 1),
+(4, 'Ingénieur R&D Développement Durable', 'Participation à des projets de recherche sur les énergies renouvelables.', DATE_SUB(CURDATE(), INTERVAL 15 DAY), 5, DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '6 mois', 1000.00, 'Bordeaux', 0),
+(5, 'Développeur d''Applications Médicales', 'Développement de fonctionnalités pour notre logiciel de gestion médicale.', DATE_SUB(CURDATE(), INTERVAL 3 DAY), 4, DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '6 mois', 950.00, 'Toulouse', 1),
+(2, 'Assistant Contrôleur de Gestion', 'Stage au sein de notre équipe finance pour participer au suivi budgétaire.', DATE_SUB(CURDATE(), INTERVAL 7 DAY), 3, DATE_ADD(CURDATE(), INTERVAL 2 MONTH), '4 mois', 800.00, 'Lyon', 0),
+(3, 'Assistant Chef de Projet SEO', 'Participation à l''optimisation du référencement de nos clients.', DATE_SUB(CURDATE(), INTERVAL 20 DAY), 3, DATE_ADD(CURDATE(), INTERVAL 1 MONTH), '3 mois', 700.00, 'Nantes', 1);
+
+-- Association des compétences aux offres
+INSERT INTO offer_skills (offer_id, skill_id) VALUES
+(1, 1), (1, 13), (1, 14), -- JS, React, Node.js pour Développeur Full Stack
+(2, 11), (2, 12), -- Design UX/UI, Photoshop pour UX/UI Designer
+(3, 6), (3, 7), -- SQL, Excel pour Assistant Analyste Financier
+(4, 9), (4, 10), -- Marketing Digital, SEO pour Chargé de Marketing Digital
+(5, 15), (5, 3), -- Gestion de projet, Java pour Ingénieur R&D
+(6, 3), (6, 4), (6, 6), -- Java, PHP, SQL pour Développeur d'Applications Médicales
+(7, 7), (7, 6), -- Excel, SQL pour Assistant Contrôleur de Gestion
+(8, 10), (8, 9), (8, 8); -- SEO, Marketing Digital, Communication pour Assistant Chef de Projet SEO
+
+-- Création de quelques candidatures
+INSERT INTO applications (student_id, offer_id, cover_letter, cv_path, status, created_at) VALUES
+(3, 1, 'Je suis très intéressé par votre offre de stage qui correspond parfaitement à mon projet professionnel...', 'pierre_martin_cv.pdf', 'in-review', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(4, 4, 'Actuellement en formation de marketing, je souhaite mettre en pratique mes connaissances théoriques...', 'marie_dubois_cv.pdf', 'pending', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(5, 3, 'Passionné par la finance, je suis très motivé à l''idée de rejoindre votre équipe...', 'thomas_bernard_cv.pdf', 'accepted', DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(6, 2, 'Étudiant en design, je suis particulièrement intéressé par l''UX/UI et souhaite développer mes compétences...', 'sophie_leroy_cv.pdf', 'interview', DATE_SUB(NOW(), INTERVAL 4 DAY)),
+(7, 5, 'Étudiant en ingénierie, je suis passionné par le développement durable et les énergies renouvelables...', 'lucas_mercier_cv.pdf', 'pending', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(3, 6, 'Avec ma formation en informatique, je suis très intéressé par le développement d''applications médicales...', 'pierre_martin_cv.pdf', 'rejected', DATE_SUB(NOW(), INTERVAL 15 DAY)),
+(4, 8, 'Je souhaite mettre à profit mes compétences en marketing digital dans le domaine du SEO...', 'marie_dubois_cv.pdf', 'accepted', DATE_SUB(NOW(), INTERVAL 12 DAY));
+
+-- Création de l'historique des statuts
+INSERT INTO application_status_history (application_id, status, comment, created_at) VALUES
+(1, 'pending', 'Candidature créée', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(1, 'in-review', 'Candidature en cours d''examen', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(2, 'pending', 'Candidature créée', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(3, 'pending', 'Candidature créée', DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(3, 'in-review', 'Candidature en cours d''examen', DATE_SUB(NOW(), INTERVAL 8 DAY)),
+(3, 'interview', 'Entretien programmé pour le 15/04', DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(3, 'accepted', 'Candidature acceptée - Stage confirmé', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(4, 'pending', 'Candidature créée', DATE_SUB(NOW(), INTERVAL 4 DAY)),
+(4, 'in-review', 'Candidature en cours d''examen', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(4, 'interview', 'Entretien programmé pour la semaine prochaine', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(5, 'pending', 'Candidature créée', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(6, 'pending', 'Candidature créée', DATE_SUB(NOW(), INTERVAL 15 DAY)),
+(6, 'in-review', 'Candidature en cours d''examen', DATE_SUB(NOW(), INTERVAL 13 DAY)),
+(6, 'rejected', 'Profil ne correspondant pas exactement aux compétences recherchées', DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(7, 'pending', 'Candidature créée', DATE_SUB(NOW(), INTERVAL 12 DAY)),
+(7, 'in-review', 'Candidature en cours d''examen', DATE_SUB(NOW(), INTERVAL 10 DAY)),
+(7, 'interview', 'Entretien programmé', DATE_SUB(NOW(), INTERVAL 8 DAY)),
+(7, 'accepted', 'Candidature acceptée suite à un excellent entretien', DATE_SUB(NOW(), INTERVAL 6 DAY));
+
+-- Création de notes sur les candidatures
+INSERT INTO application_notes (application_id, user_id, content, created_at) VALUES
+(1, 1, 'Profil intéressant avec de bonnes compétences techniques.', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(1, 2, 'À contacter pour un entretien technique la semaine prochaine.', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(3, 1, 'Excellent entretien, très bon niveau en finance.', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(3, 2, 'Stage confirmé, prévoir son intégration dans l''équipe finances.', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(4, 1, 'Portfolio intéressant, à rencontrer rapidement.', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(6, 1, 'Manque d''expérience dans le domaine médical.', DATE_SUB(NOW(), INTERVAL 11 DAY));
+
+-- Création de quelques éléments dans la wishlist
+INSERT INTO wishlist (student_id, offer_id, created_at) VALUES
+(3, 3, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+(3, 5, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(4, 1, DATE_SUB(NOW(), INTERVAL 4 DAY)),
+(4, 8, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+(5, 3, DATE_SUB(NOW(), INTERVAL 9 DAY)),
+(5, 7, DATE_SUB(NOW(), INTERVAL 8 DAY)),
+(6, 2, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+(7, 5, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(7, 6, DATE_SUB(NOW(), INTERVAL 2 DAY));
+
+-- Création de quelques évaluations d'entreprises
+INSERT INTO company_evaluations (student_id, company_id, rating, comment, created_at) VALUES
+(5, 2, 4.5, 'Très bonne expérience, équipe accueillante et projets intéressants.', DATE_SUB(NOW(), INTERVAL 30 DAY)),
+(4, 3, 4.0, 'Bonne ambiance de travail, missions variées et formatives.', DATE_SUB(NOW(), INTERVAL 45 DAY)),
+(3, 1, 3.5, 'Projets intéressants mais parfois peu d''encadrement.', DATE_SUB(NOW(), INTERVAL 60 DAY)),
+(6, 1, 4.0, 'Équipe jeune et dynamique, j''ai beaucoup appris.', DATE_SUB(NOW(), INTERVAL 90 DAY)),
+(7, 4, 5.0, 'Excellente entreprise avec de vraies valeurs écologiques.', DATE_SUB(NOW(), INTERVAL 15 DAY));

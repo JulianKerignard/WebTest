@@ -24,7 +24,7 @@ class PilotController {
     }
 
     /**
-     * Display pilot dashboard
+     * Affiche le tableau de bord du pilote
      */
     public function dashboard() {
         $session = App::$app->session;
@@ -36,9 +36,14 @@ class PilotController {
         }
 
         $pilotData = $this->pilotModel->findById($user['id']);
-        $stats = $this->pilotModel->getStudentStatistics();
 
-        // Get recent activity
+        // Statistiques simplifiées
+        $stats = [
+            'total_students' => $this->db->fetch("SELECT COUNT(*) as count FROM Student")['count'] ?? 0,
+            'total_offers' => $this->db->fetch("SELECT COUNT(*) as count FROM Offers")['count'] ?? 0
+        ];
+
+        // Récupérer les stages récents
         $recentInternships = $this->internshipModel->findAll(5);
 
         return $this->template->renderWithLayout('pilot/dashboard', 'dashboard', [
@@ -50,7 +55,7 @@ class PilotController {
     }
 
     /**
-     * Display students list
+     * Affiche la liste des étudiants
      */
     public function students() {
         $session = App::$app->session;
@@ -70,7 +75,7 @@ class PilotController {
     }
 
     /**
-     * Display student details
+     * Affiche les détails d'un étudiant
      */
     public function viewStudent($id) {
         $session = App::$app->session;
@@ -88,18 +93,14 @@ class PilotController {
             return App::$app->response->redirect('/pilot/students');
         }
 
-        // Get student applications
-        $applications = [];  // Implement this when applications table exists
-
         return $this->template->renderWithLayout('pilot/student-view', 'dashboard', [
             'student' => $student,
-            'applications' => $applications,
             'user' => $user
         ]);
     }
 
     /**
-     * Display company list
+     * Affiche la liste des entreprises
      */
     public function companies() {
         $session = App::$app->session;
@@ -112,14 +113,14 @@ class PilotController {
 
         $companies = $this->companyModel->findAll();
 
-        return $this->template->renderWithLayout('pilot/company', 'dashboard', [
-            'company' => $companies,
+        return $this->template->renderWithLayout('pilot/companies', 'dashboard', [
+            'companies' => $companies,
             'user' => $user
         ]);
     }
 
     /**
-     * Display internships list
+     * Affiche la liste des stages
      */
     public function internships() {
         $session = App::$app->session;
@@ -139,7 +140,7 @@ class PilotController {
     }
 
     /**
-     * Display statistics
+     * Affiche les statistiques de base
      */
     public function statistics() {
         $session = App::$app->session;
@@ -150,7 +151,13 @@ class PilotController {
             return App::$app->response->redirect('/login');
         }
 
-        $stats = $this->pilotModel->getStudentStatistics();
+        // Statistiques simplifiées
+        $stats = [
+            'total_students' => $this->db->fetch("SELECT COUNT(*) as count FROM Student")['count'] ?? 0,
+            'total_companies' => $this->db->fetch("SELECT COUNT(*) as count FROM Company")['count'] ?? 0,
+            'total_offers' => $this->db->fetch("SELECT COUNT(*) as count FROM Offers")['count'] ?? 0,
+            'total_applications' => $this->db->fetch("SELECT COUNT(*) as count FROM applications")['count'] ?? 0
+        ];
 
         return $this->template->renderWithLayout('pilot/statistics', 'dashboard', [
             'stats' => $stats,

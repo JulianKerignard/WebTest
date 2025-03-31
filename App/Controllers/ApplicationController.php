@@ -8,7 +8,6 @@ use App\Models\Internship;
 use App\Models\Student;
 use App\Models\Company;
 use App\Helpers\FileHelper;
-use App\Services\EmailService;
 
 class ApplicationController {
     private $template;
@@ -16,7 +15,6 @@ class ApplicationController {
     private $internshipModel;
     private $studentModel;
     private $companyModel;
-    private $emailService;
 
     public function __construct() {
         $this->template = new Template();
@@ -24,7 +22,6 @@ class ApplicationController {
         $this->internshipModel = new Internship();
         $this->studentModel = new Student();
         $this->companyModel = new Company();
-        $this->emailService = new EmailService();
     }
 
     /**
@@ -74,17 +71,7 @@ class ApplicationController {
                 return App::$app->response->redirect('/company/dashboard');
             }
 
-            // Récupérer les filtres
-            $filters = [
-                'status' => $request->get('status'),
-                'offer_id' => $request->get('offer_id'),
-                'search' => $request->get('search')
-            ];
-
-            $applications = $this->applicationModel->findByCompanyId($company['ID_Company'], $limit, $offset, $filters);
-
-            // Récupérer les offres de l'entreprise pour le filtre
-            $offers = $this->internshipModel->getByCompany($company['ID_Company']);
+            $applications = $this->applicationModel->findByCompanyId($company['ID_Company'], $limit, $offset);
 
             // Statistiques de candidatures
             $stats = $this->applicationModel->getApplicationStatistics($company['ID_Company'], 'company');
@@ -92,8 +79,6 @@ class ApplicationController {
 
             return $this->template->renderWithLayout('company/applications', 'dashboard', [
                 'applications' => $applications,
-                'offers' => $offers,
-                'filters' => $filters,
                 'stats' => $stats,
                 'pagination' => [
                     'page' => $page,
@@ -104,14 +89,18 @@ class ApplicationController {
             ]);
         } elseif ($user['role'] === 'admin' || $user['role'] === 'pilot') {
             // Pour les administrateurs ou pilotes, afficher toutes les candidatures
-            $applications = $this->applicationModel->getRecentApplications($limit);
-            // Statistiques globales
-            $stats = $this->applicationModel->getApplicationStatistics();
-            $totalApplications = $stats['total'];
+            $sql = "SELECT a.*, o.Offer_title, c.Name as company_name
+                  FROM applications a 
+                  JOIN Offers o ON a.offer_id = o.ID_Offer
+                  JOIN Company c ON o.ID_Company = c.ID_Company
+                  ORDER BY a.created_at DESC LIMIT ?, ?";
+            $applications = $this->applicationModel->db->fetchAll($sql, [$offset, $limit]);
+
+            $totalSql = "SELECT COUNT(*) as count FROM applications";
+            $totalApplications = $this->applicationModel->db->fetch($totalSql)['count'];
 
             return $this->template->renderWithLayout('admin/applications/index', 'dashboard', [
                 'applications' => $applications,
-                'stats' => $stats,
                 'pagination' => [
                     'page' => $page,
                     'total_pages' => ceil($totalApplications / $limit),
@@ -125,9 +114,6 @@ class ApplicationController {
         return App::$app->response->redirect('/');
     }
 
-    /**
-     * Afficher les détails d'une candidature
-     */
     /**
      * Afficher les détails d'une candidature
      */
@@ -161,9 +147,6 @@ class ApplicationController {
             if ($company && $application['company_id'] == $company['ID_Company']) {
                 $hasAccess = true;
                 $viewTemplate = 'company/application-details';
-
-                // Charger les notes associées à cette candidature
-                $application['notes'] = $this->applicationModel->getNotes($id);
             }
         } elseif ($user['role'] === 'admin' || $user['role'] === 'pilot') {
             $hasAccess = true;
@@ -267,9 +250,6 @@ class ApplicationController {
         $result = $this->applicationModel->create($user['id'], $offerId, $coverLetter, $cvPath);
 
         if ($result['success']) {
-            // Envoyer notification à l'entreprise
-            $this->sendApplicationNotification($result['id']);
-
             return App::$app->response->json([
                 'success' => true,
                 'message' => 'Votre candidature a été envoyée avec succès',
@@ -301,7 +281,6 @@ class ApplicationController {
         $applicationId = $request->get('application_id');
         $status = $request->get('status');
         $feedback = $request->get('feedback');
-        $interviewDate = $request->get('interview_date');
 
         if (!$applicationId || !$status) {
             return App::$app->response->json([
@@ -331,12 +310,9 @@ class ApplicationController {
         }
 
         // Mettre à jour le statut
-        $result = $this->applicationModel->updateStatus($applicationId, $status, $feedback, $interviewDate);
+        $result = $this->applicationModel->updateStatus($applicationId, $status, $feedback);
 
         if ($result['success']) {
-            // Envoyer notification à l'étudiant
-            $this->sendStatusNotification($applicationId, $status, $feedback, $interviewDate);
-
             return App::$app->response->json([
                 'success' => true,
                 'message' => 'Statut de la candidature mis à jour avec succès'
@@ -345,71 +321,6 @@ class ApplicationController {
             return App::$app->response->json([
                 'success' => false,
                 'message' => $result['message']
-            ], 500);
-        }
-    }
-
-    /**
-     * Ajouter une note à une candidature
-     */
-    public function addNote() {
-        $request = App::$app->request;
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot' && $user['role'] !== 'company')) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Accès non autorisé'
-            ], 403);
-        }
-
-        $applicationId = $request->get('application_id');
-        $note = $request->get('note');
-
-        if (!$applicationId || !$note) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'L\'identifiant de la candidature et la note sont obligatoires'
-            ], 400);
-        }
-
-        // Vérifier si la candidature existe
-        $application = $this->applicationModel->findById($applicationId);
-        if (!$application) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Candidature non trouvée'
-            ], 404);
-        }
-
-        // Vérifier les permissions pour les entreprises
-        if ($user['role'] === 'company') {
-            $company = $this->companyModel->findByAccountId($user['id']);
-            if (!$company || $application['company_id'] != $company['ID_Company']) {
-                return App::$app->response->json([
-                    'success' => false,
-                    'message' => 'Vous n\'êtes pas autorisé à modifier cette candidature'
-                ], 403);
-            }
-        }
-
-        // Ajouter la note
-        $noteId = $this->applicationModel->addNote($applicationId, $user['id'], $note);
-
-        if ($noteId) {
-            // Récupérer toutes les notes
-            $notes = $this->applicationModel->getNotes($applicationId);
-
-            return App::$app->response->json([
-                'success' => true,
-                'message' => 'Note ajoutée avec succès',
-                'notes' => $notes
-            ]);
-        } else {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Erreur lors de l\'ajout de la note'
             ], 500);
         }
     }
@@ -474,43 +385,5 @@ class ApplicationController {
 
         readfile($filePath);
         exit;
-    }
-
-    /**
-     * Envoyer une notification pour une nouvelle candidature
-     */
-    private function sendApplicationNotification($applicationId) {
-        $application = $this->applicationModel->findById($applicationId);
-
-        if (!$application) {
-            return false;
-        }
-
-        // Envoyer un email à l'entreprise
-        $this->emailService->sendApplicationNotification($application);
-
-        // Créer une notification dans l'application
-        // Cette fonctionnalité serait implémentée dans un service de notification
-
-        return true;
-    }
-
-    /**
-     * Envoyer une notification pour un changement de statut
-     */
-    private function sendStatusNotification($applicationId, $status, $feedback, $interviewDate) {
-        $application = $this->applicationModel->findById($applicationId);
-
-        if (!$application) {
-            return false;
-        }
-
-        // Envoyer un email à l'étudiant
-        $this->emailService->sendStatusUpdateNotification($application, $status, $feedback, $interviewDate);
-
-        // Créer une notification dans l'application
-        // Cette fonctionnalité serait implémentée dans un service de notification
-
-        return true;
     }
 }

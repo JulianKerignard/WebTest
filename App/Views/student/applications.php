@@ -30,24 +30,6 @@ $current_page = 'applications';
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon purple">
-                <i class="fas fa-search"></i>
-            </div>
-            <div class="stat-info">
-                <h3><?= $stats['in-review'] ?? 0 ?></h3>
-                <p>En cours d'examen</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon orange">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div class="stat-info">
-                <h3><?= $stats['interview'] ?? 0 ?></h3>
-                <p>Entretiens</p>
-            </div>
-        </div>
-        <div class="stat-card">
             <div class="stat-icon green">
                 <i class="fas fa-check-circle"></i>
             </div>
@@ -98,30 +80,16 @@ $current_page = 'applications';
             <?php else: ?>
                 <?php foreach ($applications as $application): ?>
                     <div class="application-item" data-status="<?= $application['status'] ?>">
-                        <div class="application-company">
-                            <div class="company-logo">
-                                <?php if (!empty($application['company_logo'])): ?>
-                                    <img src="/uploads/company_logos/<?= htmlspecialchars($application['company_logo']) ?>" alt="<?= htmlspecialchars($application['company_name']) ?> Logo">
-                                <?php else: ?>
-                                    <?= htmlspecialchars($application['company_initials']) ?>
-                                <?php endif; ?>
-                            </div>
-                        </div>
                         <div class="application-info">
                             <h3><?= htmlspecialchars($application['Offer_title']) ?></h3>
                             <p class="company-name"><?= htmlspecialchars($application['company_name']) ?></p>
                             <div class="application-details-sm">
                                 <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($application['location']) ?></span>
-                                <span><i class="fas fa-euro-sign"></i> <?= htmlspecialchars($application['monthly_remuneration']) ?></span>
-                                <span><i class="fas fa-clock"></i> <?= htmlspecialchars($application['internship_duration']) ?></span>
+                                <span><i class="fas fa-calendar"></i> <?= date('d/m/Y', strtotime($application['created_at'])) ?></span>
                             </div>
                         </div>
                         <div class="application-status">
                             <span class="status-badge <?= $application['status'] ?>"><?= htmlspecialchars($application['status_label']) ?></span>
-                            <?php if ($application['status'] === 'interview'): ?>
-                                <span class="interview-date"><i class="far fa-calendar-check"></i> <?= htmlspecialchars($application['interview_date_formatted']) ?></span>
-                            <?php endif; ?>
-                            <span class="application-date"><i class="far fa-clock"></i> <?= htmlspecialchars($application['time_ago']) ?></span>
                         </div>
                         <div class="application-actions">
                             <a href="/applications/<?= $application['id'] ?>" class="btn btn-outline btn-sm">Voir détails</a>
@@ -181,8 +149,8 @@ $current_page = 'applications';
                     }
                 });
 
-                // Mettre à jour l'état vide si nécessaire
-                updateEmptyState();
+                // Vérifier s'il y a des résultats
+                checkNoResults();
             });
         });
 
@@ -197,7 +165,7 @@ $current_page = 'applications';
                     const company = item.querySelector('.company-name').textContent.toLowerCase();
 
                     if (title.includes(searchTerm) || company.includes(searchTerm)) {
-                        // Vérifier également le filtre actif
+                        // Aussi vérifier le filtre actif
                         const activeFilter = document.querySelector('.filter-tab.active').dataset.filter;
                         if (activeFilter === 'all' || item.dataset.status === activeFilter) {
                             item.style.display = 'flex';
@@ -209,24 +177,24 @@ $current_page = 'applications';
                     }
                 });
 
-                // Mettre à jour l'état vide si nécessaire
-                updateEmptyState();
+                // Vérifier s'il y a des résultats
+                checkNoResults();
             });
         }
 
-        // Fonction pour mettre à jour l'état vide
-        function updateEmptyState() {
+        // Fonction pour vérifier s'il n'y a pas de résultats
+        function checkNoResults() {
             const visibleItems = Array.from(applicationItems).filter(item => item.style.display !== 'none');
             const applicationsContainer = document.querySelector('.applications-list');
-            const existingEmptyState = document.querySelector('.empty-state');
+            const existingEmptyState = document.querySelector('.empty-state-search');
 
-            if (visibleItems.length === 0) {
+            if (visibleItems.length === 0 && applicationsContainer && !document.querySelector('.empty-state')) {
                 if (!existingEmptyState) {
                     const emptyState = document.createElement('div');
-                    emptyState.className = 'empty-state';
+                    emptyState.className = 'empty-state empty-state-search';
                     emptyState.innerHTML = `
                         <div class="empty-icon">
-                            <i class="fas fa-filter"></i>
+                            <i class="fas fa-search"></i>
                         </div>
                         <h3>Aucun résultat</h3>
                         <p>Aucune candidature ne correspond à vos critères de recherche.</p>
@@ -236,11 +204,11 @@ $current_page = 'applications';
 
                     // Ajouter l'événement au bouton de réinitialisation
                     emptyState.querySelector('.reset-filters').addEventListener('click', function() {
-                        searchInput.value = '';
                         document.querySelector('.filter-tab[data-filter="all"]').click();
+                        if (searchInput) searchInput.value = '';
                     });
                 }
-            } else if (existingEmptyState) {
+            } else if (existingEmptyState && (visibleItems.length > 0 || document.querySelector('.empty-state:not(.empty-state-search)'))) {
                 applicationsContainer.removeChild(existingEmptyState);
             }
         }

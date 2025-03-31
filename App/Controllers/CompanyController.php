@@ -6,6 +6,7 @@ use App\Core\Template;
 use App\Models\Company;
 use App\Models\Internship;
 use App\Models\Evaluation;
+use App\Helpers\SecurityHelper;
 
 class CompanyController {
     private $template;
@@ -21,7 +22,7 @@ class CompanyController {
     }
 
     /**
-     * Display company list
+     * Affiche la liste des entreprises
      */
     public function index() {
         $request = App::$app->request;
@@ -29,11 +30,11 @@ class CompanyController {
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
-        // Get search keyword if any
+        // Récupérer les paramètres de recherche simplifiés
         $keyword = $request->get('keyword');
         $sectorId = $request->get('sector_id');
 
-        // Get company
+        // Récupérer les entreprises
         $companies = [];
         if ($keyword) {
             $companies = $this->companyModel->search($keyword);
@@ -46,56 +47,62 @@ class CompanyController {
         $totalCompanies = $this->companyModel->getTotalCompanies();
         $totalPages = ceil($totalCompanies / $limit);
 
-        // Check if user is logged in
+        // Vérifier si l'utilisateur est connecté
         $session = App::$app->session;
         $user = $session->get('user');
 
+        // Récupérer les secteurs pour le filtre
+        $sectors = $this->companyModel->getSectors();
+
+        // Générer un token CSRF
+        $csrfToken = SecurityHelper::generateCSRFToken();
+
         return $this->template->renderWithLayout('company/index', 'main', [
-            'company' => $companies,
+            'companies' => $companies,
+            'sectors' => $sectors,
             'pagination' => [
-                'page' => $page,
+                'current_page' => $page,
                 'total_pages' => $totalPages,
                 'total_items' => $totalCompanies
             ],
             'keyword' => $keyword,
             'sector_id' => $sectorId,
-            'user' => $user
+            'user' => $user,
+            'csrf_token' => $csrfToken
         ]);
     }
 
     /**
-     * Display company details
+     * Affiche les détails d'une entreprise
      */
     public function show($id) {
         $company = $this->companyModel->findById($id);
 
         if (!$company) {
             App::$app->session->setFlash('error', 'Entreprise non trouvée');
-            return App::$app->response->redirect('/company');
+            return App::$app->response->redirect('/companies');
         }
 
-        // Get company offers
+        // Récupérer les offres de l'entreprise
         $offers = $this->companyModel->getOffers($id);
 
-        // Get company evaluations
-        $evaluations = $this->evaluationModel->getCompanyEvaluations($id);
-        $averageRating = $this->evaluationModel->getAverageCompanyRating($id);
-
-        // Check if user is logged in
+        // Vérifier si l'utilisateur est connecté
         $session = App::$app->session;
         $user = $session->get('user');
+
+        // Générer un token CSRF
+        $csrfToken = SecurityHelper::generateCSRFToken();
 
         return $this->template->renderWithLayout('company/show', 'main', [
             'company' => $company,
             'offers' => $offers,
-            'evaluations' => $evaluations,
-            'averageRating' => $averageRating,
-            'user' => $user
+            'user' => $user,
+            'csrf_token' => $csrfToken
         ]);
     }
 
     /**
-     * Rate a company
+     * Évaluer une entreprise
      */
     public function rate() {
         $request = App::$app->request;
@@ -120,7 +127,7 @@ class CompanyController {
             ], 400);
         }
 
-        // Check if company exists
+        // Vérifier si l'entreprise existe
         $company = $this->companyModel->findById($companyId);
         if (!$company) {
             return App::$app->response->json([
@@ -129,7 +136,7 @@ class CompanyController {
             ], 404);
         }
 
-        // Create evaluation
+        // Créer l'évaluation
         $result = $this->evaluationModel->createCompanyEvaluation($user['id'], $companyId, $rating, $comment);
 
         if ($result) {
@@ -145,10 +152,28 @@ class CompanyController {
         }
     }
 
-    /* Admin functions */
+    /**
+     * Affiche la interface admin pour les entreprises
+     */
+    public function adminIndex() {
+        $session = App::$app->session;
+        $user = $session->get('user');
+
+        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
+            $session->setFlash('error', 'Accès non autorisé');
+            return App::$app->response->redirect('/login');
+        }
+
+        $companies = $this->companyModel->findAll();
+
+        return $this->template->renderWithLayout('admin/companies/index', 'dashboard', [
+            'companies' => $companies,
+            'user' => $user
+        ]);
+    }
 
     /**
-     * Display company creation form
+     * Afficher le formulaire de création d'entreprise
      */
     public function create() {
         $session = App::$app->session;
@@ -156,16 +181,19 @@ class CompanyController {
 
         if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
             $session->setFlash('error', 'Accès non autorisé');
-            return App::$app->response->redirect('/');
+            return App::$app->response->redirect('/login');
         }
 
-        return $this->template->renderWithLayout('admin/company/create', 'dashboard', [
+        $sectors = $this->companyModel->getSectors();
+
+        return $this->template->renderWithLayout('admin/companies/create', 'dashboard', [
+            'sectors' => $sectors,
             'user' => $user
         ]);
     }
 
     /**
-     * Store new company
+     * Créer une nouvelle entreprise
      */
     public function store() {
         $request = App::$app->request;
@@ -181,7 +209,7 @@ class CompanyController {
 
         $data = $request->getBody();
 
-        // Validate data
+        // Validation simplifiée
         if (empty($data['Name']) || empty($data['Description'])) {
             return App::$app->response->json([
                 'success' => false,
@@ -189,14 +217,14 @@ class CompanyController {
             ], 400);
         }
 
-        // Create company
+        // Créer l'entreprise
         $result = $this->companyModel->create($data);
 
         if ($result) {
             return App::$app->response->json([
                 'success' => true,
                 'message' => 'Entreprise créée avec succès',
-                'redirect' => '/admin/company'
+                'redirect' => '/admin/companies'
             ]);
         } else {
             return App::$app->response->json([
@@ -207,7 +235,7 @@ class CompanyController {
     }
 
     /**
-     * Display company edit form
+     * Afficher le formulaire d'édition d'entreprise
      */
     public function edit($id) {
         $session = App::$app->session;
@@ -215,24 +243,26 @@ class CompanyController {
 
         if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
             $session->setFlash('error', 'Accès non autorisé');
-            return App::$app->response->redirect('/');
+            return App::$app->response->redirect('/login');
         }
 
         $company = $this->companyModel->findById($id);
-
         if (!$company) {
             $session->setFlash('error', 'Entreprise non trouvée');
-            return App::$app->response->redirect('/admin/company');
+            return App::$app->response->redirect('/admin/companies');
         }
 
-        return $this->template->renderWithLayout('admin/company/edit', 'dashboard', [
+        $sectors = $this->companyModel->getSectors();
+
+        return $this->template->renderWithLayout('admin/companies/edit', 'dashboard', [
             'company' => $company,
+            'sectors' => $sectors,
             'user' => $user
         ]);
     }
 
     /**
-     * Update company
+     * Mettre à jour une entreprise
      */
     public function update($id) {
         $request = App::$app->request;
@@ -248,7 +278,7 @@ class CompanyController {
 
         $data = $request->getBody();
 
-        // Validate data
+        // Validation simplifiée
         if (empty($data['Name']) || empty($data['Description'])) {
             return App::$app->response->json([
                 'success' => false,
@@ -256,18 +286,25 @@ class CompanyController {
             ], 400);
         }
 
-        // Update company
-        $this->companyModel->update($id, $data);
+        // Mettre à jour l'entreprise
+        $result = $this->companyModel->update($id, $data);
 
-        return App::$app->response->json([
-            'success' => true,
-            'message' => 'Entreprise mise à jour avec succès',
-            'redirect' => '/admin/company'
-        ]);
+        if ($result) {
+            return App::$app->response->json([
+                'success' => true,
+                'message' => 'Entreprise mise à jour avec succès',
+                'redirect' => '/admin/companies'
+            ]);
+        } else {
+            return App::$app->response->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour de l\'entreprise'
+            ], 500);
+        }
     }
 
     /**
-     * Delete company
+     * Supprimer une entreprise
      */
     public function delete($id) {
         $session = App::$app->session;
@@ -280,11 +317,18 @@ class CompanyController {
             ], 403);
         }
 
-        $this->companyModel->delete($id);
+        $result = $this->companyModel->delete($id);
 
-        return App::$app->response->json([
-            'success' => true,
-            'message' => 'Entreprise supprimée avec succès'
-        ]);
+        if ($result) {
+            return App::$app->response->json([
+                'success' => true,
+                'message' => 'Entreprise supprimée avec succès'
+            ]);
+        } else {
+            return App::$app->response->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression de l\'entreprise'
+            ], 500);
+        }
     }
 }

@@ -6,6 +6,7 @@ use App\Core\Template;
 use App\Models\Internship;
 use App\Models\Company;
 use App\Models\Wishlist;
+use App\Helpers\SecurityHelper;
 
 class InternshipController {
     private $template;
@@ -20,27 +21,30 @@ class InternshipController {
         $this->wishlistModel = new Wishlist();
     }
 
+    /**
+     * Affiche la liste des offres de stage
+     */
     public function index() {
         $request = App::$app->request;
         $page = (int)$request->get('page', 1);
         $limit = 12;
         $offset = ($page - 1) * $limit;
 
-        // Récupérer les filtres
+        // Récupérer les filtres simplifiés
         $filters = [
             'keyword' => $request->get('keyword'),
             'company_id' => $request->get('company_id'),
             'level_id' => $request->get('level_id'),
             'min_remuneration' => $request->get('min_remuneration'),
-            'duration' => $request->get('duration'),
-            'sort' => $request->get('sort', 'date'),
             'limit' => $limit,
             'offset' => $offset
         ];
 
-        // Récupérer les stages filtrés et paginés
+        // Récupérer les offres de stage
         $internships = $this->internshipModel->search($filters);
-        $totalInternships = $this->internshipModel->getTotalInternships($filters);
+
+        // Déterminer le nombre total d'offres pour la pagination
+        $totalInternships = count($this->internshipModel->search(['keyword' => $filters['keyword'], 'company_id' => $filters['company_id'], 'level_id' => $filters['level_id']]));
         $totalPages = ceil($totalInternships / $limit);
 
         // Récupérer les données pour les filtres
@@ -51,20 +55,34 @@ class InternshipController {
         $session = App::$app->session;
         $user = $session->get('user');
 
+        // Si l'utilisateur est un étudiant, vérifier les offres dans sa wishlist
+        if ($user && $user['role'] === 'student') {
+            foreach ($internships as &$internship) {
+                $internship['in_wishlist'] = $this->wishlistModel->isInWishlist($user['id'], $internship['ID_Offer']);
+            }
+        }
+
+        // Générer un token CSRF
+        $csrfToken = SecurityHelper::generateCSRFToken();
+
         return $this->template->renderWithLayout('stages/index', 'main', [
             'internships' => $internships,
-            'company' => $companies,
+            'companies' => $companies,
             'levels' => $levels,
             'filters' => $filters,
             'pagination' => [
-                'page' => $page,
+                'current_page' => $page,
                 'total_pages' => $totalPages,
                 'total_items' => $totalInternships
             ],
-            'user' => $user
+            'user' => $user,
+            'csrf_token' => $csrfToken
         ]);
     }
 
+    /**
+     * Affiche les détails d'une offre de stage
+     */
     public function show($id) {
         $internship = $this->internshipModel->findById($id);
 
@@ -85,28 +103,53 @@ class InternshipController {
 
         // Vérifier si le stage est dans les favoris
         $inWishlist = false;
-        if ($user) {
+        if ($user && $user['role'] === 'student') {
             $inWishlist = $this->wishlistModel->isInWishlist($user['id'], $id);
         }
+
+        // Générer un token CSRF
+        $csrfToken = SecurityHelper::generateCSRFToken();
 
         return $this->template->renderWithLayout('stages/show', 'main', [
             'internship' => $internship,
             'company' => $company,
             'skills' => $skills,
             'inWishlist' => $inWishlist,
-            'user' => $user
+            'user' => $user,
+            'csrf_token' => $csrfToken
         ]);
     }
 
-    // Actions administratives
-    public function create() {
-        // Vérifier si l'utilisateur est admin
+    /**
+     * Affiche la liste des offres de stage (admin)
+     */
+    public function adminIndex() {
         $session = App::$app->session;
         $user = $session->get('user');
 
         if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
-            $session->setFlash('error', 'Accès refusé');
-            return App::$app->response->redirect('/');
+            $session->setFlash('error', 'Accès non autorisé');
+            return App::$app->response->redirect('/login');
+        }
+
+        $internships = $this->internshipModel->findAll();
+
+        return $this->template->renderWithLayout('admin/internships/index', 'dashboard', [
+            'internships' => $internships,
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * Affiche le formulaire de création d'offre de stage
+     */
+    public function create() {
+        $session = App::$app->session;
+        $user = $session->get('user');
+
+        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
+            $session->setFlash('error', 'Accès non autorisé');
+            return App::$app->response->redirect('/login');
         }
 
         $companies = $this->companyModel->findAll();
@@ -114,13 +157,16 @@ class InternshipController {
         $skills = $this->internshipModel->getSkills();
 
         return $this->template->renderWithLayout('admin/internships/create', 'dashboard', [
-            'company' => $companies,
+            'companies' => $companies,
             'levels' => $levels,
             'skills' => $skills,
             'user' => $user
         ]);
     }
 
+    /**
+     * Crée une nouvelle offre de stage
+     */
     public function store() {
         $request = App::$app->request;
         $session = App::$app->session;
@@ -129,13 +175,13 @@ class InternshipController {
         if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
             return App::$app->response->json([
                 'success' => false,
-                'message' => 'Accès refusé'
+                'message' => 'Accès non autorisé'
             ], 403);
         }
 
         $data = $request->getBody();
 
-        // Validation de base
+        // Validation simplifiée
         if (empty($data['Offer_title']) || empty($data['Description']) || empty($data['ID_Company'])) {
             return App::$app->response->json([
                 'success' => false,
@@ -147,16 +193,14 @@ class InternshipController {
         $result = $this->internshipModel->create($data);
 
         if ($result) {
-            // Si des compétences ont été sélectionnées, les associer à l'offre
+            // Gérer les compétences si elles sont spécifiées
             if (!empty($data['skills'])) {
                 $skills = explode(',', $data['skills']);
                 foreach ($skills as $skillId) {
-                    // Cette fonction est théorique car la table de jonction n'existe pas encore
-                    // $this->internshipModel->addSkill($result, $skillId);
+                    $this->internshipModel->addSkill($result, $skillId);
                 }
             }
 
-            $session->setFlash('success', 'Offre de stage créée avec succès');
             return App::$app->response->json([
                 'success' => true,
                 'message' => 'Offre de stage créée avec succès',
@@ -170,13 +214,16 @@ class InternshipController {
         }
     }
 
+    /**
+     * Affiche le formulaire d'édition d'offre de stage
+     */
     public function edit($id) {
         $session = App::$app->session;
         $user = $session->get('user');
 
         if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
-            $session->setFlash('error', 'Accès refusé');
-            return App::$app->response->redirect('/');
+            $session->setFlash('error', 'Accès non autorisé');
+            return App::$app->response->redirect('/login');
         }
 
         $internship = $this->internshipModel->findById($id);
@@ -193,7 +240,7 @@ class InternshipController {
 
         return $this->template->renderWithLayout('admin/internships/edit', 'dashboard', [
             'internship' => $internship,
-            'company' => $companies,
+            'companies' => $companies,
             'levels' => $levels,
             'skills' => $skills,
             'internshipSkills' => $internshipSkills,
@@ -201,6 +248,9 @@ class InternshipController {
         ]);
     }
 
+    /**
+     * Met à jour une offre de stage
+     */
     public function update($id) {
         $request = App::$app->request;
         $session = App::$app->session;
@@ -209,13 +259,13 @@ class InternshipController {
         if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
             return App::$app->response->json([
                 'success' => false,
-                'message' => 'Accès refusé'
+                'message' => 'Accès non autorisé'
             ], 403);
         }
 
         $data = $request->getBody();
 
-        // Validation de base
+        // Validation simplifiée
         if (empty($data['Offer_title']) || empty($data['Description']) || empty($data['ID_Company'])) {
             return App::$app->response->json([
                 'success' => false,
@@ -224,29 +274,37 @@ class InternshipController {
         }
 
         // Mettre à jour l'offre de stage
-        $this->internshipModel->update($id, $data);
+        $result = $this->internshipModel->update($id, $data);
 
-        // Mettre à jour les compétences
-        // Cette partie est théorique car la table de jonction n'existe pas encore
-        if (!empty($data['skills'])) {
-            // Supprimer les compétences existantes
-            // $this->internshipModel->removeAllSkills($id);
+        if ($result) {
+            // Gérer les compétences si elles sont spécifiées
+            if (isset($data['skills'])) {
+                // Supprimer les anciennes compétences
+                $this->internshipModel->removeAllSkills($id);
 
-            // Ajouter les nouvelles compétences
-            $skills = explode(',', $data['skills']);
-            foreach ($skills as $skillId) {
-                // $this->internshipModel->addSkill($id, $skillId);
+                // Ajouter les nouvelles
+                $skills = explode(',', $data['skills']);
+                foreach ($skills as $skillId) {
+                    $this->internshipModel->addSkill($id, $skillId);
+                }
             }
-        }
 
-        $session->setFlash('success', 'Offre de stage mise à jour avec succès');
-        return App::$app->response->json([
-            'success' => true,
-            'message' => 'Offre de stage mise à jour avec succès',
-            'redirect' => '/admin/internships'
-        ]);
+            return App::$app->response->json([
+                'success' => true,
+                'message' => 'Offre de stage mise à jour avec succès',
+                'redirect' => '/admin/internships'
+            ]);
+        } else {
+            return App::$app->response->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour de l\'offre de stage'
+            ], 500);
+        }
     }
 
+    /**
+     * Supprime une offre de stage
+     */
     public function delete($id) {
         $session = App::$app->session;
         $user = $session->get('user');
@@ -254,16 +312,22 @@ class InternshipController {
         if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
             return App::$app->response->json([
                 'success' => false,
-                'message' => 'Accès refusé'
+                'message' => 'Accès non autorisé'
             ], 403);
         }
 
-        $this->internshipModel->delete($id);
+        $result = $this->internshipModel->delete($id);
 
-        $session->setFlash('success', 'Offre de stage supprimée avec succès');
-        return App::$app->response->json([
-            'success' => true,
-            'message' => 'Offre de stage supprimée avec succès'
-        ]);
+        if ($result) {
+            return App::$app->response->json([
+                'success' => true,
+                'message' => 'Offre de stage supprimée avec succès'
+            ]);
+        } else {
+            return App::$app->response->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression de l\'offre de stage'
+            ], 500);
+        }
     }
 }

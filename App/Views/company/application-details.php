@@ -3,6 +3,14 @@
 $title = 'Gestion de candidature';
 $current_page = 'applications';
 
+// Vérifier si la variable $application existe
+if (!isset($application) || empty($application)) {
+    echo '<div class="error-message" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin: 15px; border-radius: 5px;">
+        <strong>Erreur:</strong> Les données de candidature sont manquantes ou la connexion à la base de données a échoué.
+    </div>';
+    return;
+}
+
 // Fonctions utilitaires locales pour éviter la dépendance au ViewHelper
 function safe_value($array, $key, $default = '') {
     if (!isset($array) || !is_array($array) || !isset($array[$key])) {

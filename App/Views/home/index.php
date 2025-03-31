@@ -2,6 +2,16 @@
 // Définir le titre et la page courante
 $title = 'Trouvez votre stage idéal';
 $current_page = 'home';
+
+// Initialisation des variables manquantes pour éviter les erreurs
+$popularInternships = $popularInternships ?? [];
+$user = $user ?? null;
+$csrf_token = $csrf_token ?? '';
+
+// Génération d'un token CSRF si nécessaire
+if (empty($csrf_token) && class_exists('\\App\\Helpers\\SecurityHelper')) {
+    $csrf_token = \App\Helpers\SecurityHelper::generateCSRFToken();
+}
 ?>
 <link rel="stylesheet" href="/Asset/Css/main.css">
 <link rel="stylesheet" href="/Asset/Css/Style.css">
@@ -72,110 +82,51 @@ $current_page = 'home';
 
 <section class="internships">
     <div class="container">
-        <div class="internships-header">
-            <h2 class="section-title">Stages populaires</h2>
-            <div class="filter-options">
-                <button class="filter-button active" data-filter="all">Tous</button>
-                <button class="filter-button" data-filter="tech">Tech</button>
-                <button class="filter-button" data-filter="marketing">Marketing</button>
-                <button class="filter-button" data-filter="finance">Finance</button>
-                <button class="filter-button" data-filter="design">Design</button>
-            </div>
-        </div>
+        <h2 class="section-title">Stages populaires</h2>
+        <p class="section-description">Découvrez les stages les plus recherchés du moment</p>
         <div class="internship-grid">
-            <?php foreach ($popularInternships as $internship): ?>
-                <div class="internship-card" data-category="<?= htmlspecialchars($internship['category']) ?>">
-                    <div class="card-header">
-                        <div class="company-logo"><?= htmlspecialchars($internship['company_initials']) ?></div>
-                        <div class="card-title">
+            <?php if (!empty($popularInternships)): ?>
+                <?php foreach ($popularInternships as $internship): ?>
+                    <div class="internship-card">
+                        <div class="card-header">
                             <h3><?= htmlspecialchars($internship['Offer_title']) ?></h3>
-                            <div class="company-name"><?= htmlspecialchars($internship['company_name']) ?></div>
+                            <span class="company-name"><?= htmlspecialchars($internship['company_name']) ?></span>
+                            <span class="location"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($internship['location']) ?></span>
                         </div>
-                        <button class="bookmark-btn" data-id="<?= $internship['ID_Offer'] ?>">
-                            <i class="<?= isset($internship['in_wishlist']) && $internship['in_wishlist'] ? 'fas' : 'far' ?> fa-bookmark"></i>
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="internship-details">
-                            <div class="detail-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span class="detail-text"><?= htmlspecialchars($internship['location']) ?></span>
+                        <div class="card-body">
+                            <div class="internship-details">
+                                <div class="detail">
+                                    <span class="label">Durée</span>
+                                    <span class="value"><?= htmlspecialchars($internship['internship_duration']) ?></span>
+                                </div>
+                                <div class="detail">
+                                    <span class="label">Rémunération</span>
+                                    <span class="value"><?= htmlspecialchars($internship['monthly_remuneration']) ?> €/mois</span>
+                                </div>
                             </div>
-                            <div class="detail-item">
-                                <i class="fas fa-euro-sign"></i>
-                                <span class="detail-text"><?= htmlspecialchars($internship['monthly_remuneration']) ?>€/mois</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-clock"></i>
-                                <span class="detail-text"><?= htmlspecialchars($internship['internship_duration']) ?></span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-graduation-cap"></i>
-                                <span class="detail-text"><?= htmlspecialchars($internship['study_level']) ?></span>
+                            <p><?= htmlspecialchars(substr($internship['Description'], 0, 150)) ?>...</p>
+                            <div class="internship-tags">
+                                <?php if (!empty($internship['skills'])): ?>
+                                    <?php foreach ($internship['skills'] as $skill): ?>
+                                        <span class="tag"><?= htmlspecialchars($skill) ?></span>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </div>
                         </div>
-                        <p><?= htmlspecialchars(substr($internship['Description'], 0, 150)) . (strlen($internship['Description']) > 150 ? '...' : '') ?></p>
-                        <div class="internship-tags">
-                            <?php foreach ($internship['skills'] as $skill): ?>
-                                <span class="tag"><?= htmlspecialchars($skill) ?></span>
-                            <?php endforeach; ?>
+                        <div class="card-footer">
+                            <span class="posted-date">
+                                Publié le <?= date('d/m/Y', strtotime($internship['Date_of_publication'])) ?>
+                            </span>
+                            <a href="<?= isset($user) ? '/stages/' . $internship['ID_Offer'] : '/login' ?>" class="btn btn-primary">
+                                <?= isset($user) ? 'Voir détails' : 'Postuler' ?>
+                            </a>
                         </div>
                     </div>
-                    <div class="card-footer">
-                        <span class="posted-date">Publié <?= htmlspecialchars($internship['posted_time']) ?></span>
-                        <a href="<?= $user ? '/stages/' . $internship['ID_Offer'] : '/login' ?>" class="btn btn-primary">
-                            <?= $user ? 'Voir détails' : 'Postuler' ?>
-                        </a>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-
-            <?php if (empty($popularInternships)): ?>
-                <!-- Afficher des données statiques si aucune donnée n'est disponible -->
-                <div class="internship-card">
-                    <div class="card-header">
-                        <div class="company-logo">AB</div>
-                        <div class="card-title">
-                            <h3>Développeur Full Stack</h3>
-                            <div class="company-name">Acme Branding</div>
-                        </div>
-                        <button class="bookmark-btn">
-                            <i class="far fa-bookmark"></i>
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div class="internship-details">
-                            <div class="detail-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span class="detail-text">Paris, France</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-euro-sign"></i>
-                                <span class="detail-text">800-1000€/mois</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-clock"></i>
-                                <span class="detail-text">6 mois</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-graduation-cap"></i>
-                                <span class="detail-text">Bac+4/5</span>
-                            </div>
-                        </div>
-                        <p>Stage au sein d'une équipe de développeurs pour participer à la création de nouvelles fonctionnalités sur notre plateforme e-commerce.</p>
-                        <div class="internship-tags">
-                            <span class="tag">React</span>
-                            <span class="tag">Node.js</span>
-                            <span class="tag">MongoDB</span>
-                            <span class="tag">Agile</span>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <span class="posted-date">Publié il y a 2 jours</span>
-                        <a href="<?= isset($user) ? '/stages/1' : '/login' ?>" class="btn btn-primary">
-                            <?= isset($user) ? 'Voir détails' : 'Postuler' ?>
-                        </a>
-                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <!-- Afficher message si aucun stage disponible -->
+                <div class="no-internships">
+                    <p>Aucun stage disponible pour le moment.</p>
                 </div>
             <?php endif; ?>
         </div>
@@ -256,11 +207,10 @@ $current_page = 'home';
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
+                            'X-CSRF-Token': '<?= $csrf_token ?>'
                         },
                         body: JSON.stringify({
-                            offer_id: internshipId,
-                            csrf_token: '<?= $csrf_token ?>'
+                            offer_id: internshipId
                         })
                     });
                 } else {
@@ -271,11 +221,10 @@ $current_page = 'home';
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
+                            'X-CSRF-Token': '<?= $csrf_token ?>'
                         },
                         body: JSON.stringify({
-                            offer_id: internshipId,
-                            csrf_token: '<?= $csrf_token ?>'
+                            offer_id: internshipId
                         })
                     });
                 }
