@@ -4,6 +4,10 @@ $title = 'Tableau de bord étudiant';
 $current_page = 'dashboard';
 ?>
 
+<link rel="stylesheet" href="/Asset/Css/main.css">
+<link rel="stylesheet" href="/Asset/Css/Style.css">
+<script src="/Asset/Js/scripts.js"></script>
+
 <div class="page-title">
     <h1>Tableau de bord</h1>
     <p>Bienvenue <?= htmlspecialchars($user['username']) ?>, voici l'état de vos candidatures</p>

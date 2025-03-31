@@ -4,6 +4,10 @@ $title = 'Mes candidatures';
 $current_page = 'applications';
 ?>
 
+<link rel="stylesheet" href="/Asset/Css/main.css">
+<link rel="stylesheet" href="/Asset/Css/Style.css">
+<script src="/Asset/Js/scripts.js"></script>
+
 <div class="page-title">
     <h1>Mes candidatures</h1>
     <p>Suivez l'évolution de vos candidatures aux stages</p>

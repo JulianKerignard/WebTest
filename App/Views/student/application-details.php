@@ -7,6 +7,10 @@ $current_page = 'applications';
 use App\Helpers\ViewHelper as View;
 ?>
 
+<link rel="stylesheet" href="/Asset/Css/main.css">
+<link rel="stylesheet" href="/Asset/Css/Style.css">
+<script src="/Asset/Js/scripts.js"></script>
+
 <div class="page-title">
     <h1>Détails de la candidature</h1>
     <p>Suivez l'évolution de votre candidature pour le stage <strong><?= View::escape($application, 'Offer_title', 'Non spécifié') ?></strong></p>

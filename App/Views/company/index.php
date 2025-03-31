@@ -4,6 +4,10 @@ $title = 'Découvrir les entreprises';
 $current_page = 'entreprises';
 ?>
 
+<link rel="stylesheet" href="/Asset/Css/main.css">
+<link rel="stylesheet" href="/Asset/Css/Style.css">
+<script src="/Asset/Js/scripts.js"></script>
+
 <section class="entreprises-hero">
     <div class="container">
         <div class="hero-content">

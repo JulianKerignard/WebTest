@@ -4,6 +4,10 @@ $title = 'Connexion';
 $current_page = '';
 ?>
 
+<link rel="stylesheet" href="/Asset/Css/main.css">
+<link rel="stylesheet" href="/Asset/Css/Style.css">
+<script src="/Asset/Js/scripts.js"></script>
+
 <section class="auth-section">
     <div class="container">
         <div class="auth-container">
