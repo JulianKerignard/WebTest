@@ -53,9 +53,9 @@ $app->router->post('/profile/update', [\App\Controllers\UserController::class, '
 $app->router->post('/profile/change-password', [\App\Controllers\UserController::class, 'changePassword'], [$authMiddleware, $csrfMiddleware]);
 
 // Routes entreprises
-$app->router->get('/companies', [\App\Controllers\CompanyController::class, 'index']);
-$app->router->get('/companies/{id}', [\App\Controllers\CompanyController::class, 'show']);
-$app->router->post('/companies/rate', [\App\Controllers\CompanyController::class, 'rate'], [$studentMiddleware, $csrfMiddleware]);
+$app->router->get('/company', [\App\Controllers\CompanyController::class, 'index']);
+$app->router->get('/company/{id}', [\App\Controllers\CompanyController::class, 'show']);
+$app->router->post('/company/rate', [\App\Controllers\CompanyController::class, 'rate'], [$studentMiddleware, $csrfMiddleware]);
 
 // Routes stages
 $app->router->get('/stages', [\App\Controllers\InternshipController::class, 'index']);
@@ -83,7 +83,7 @@ $app->router->get('/student/applications', [\App\Controllers\StudentController::
 $app->router->get('/pilot/dashboard', [\App\Controllers\PilotController::class, 'dashboard'], [$adminPilotMiddleware]);
 $app->router->get('/pilot/students', [\App\Controllers\PilotController::class, 'students'], [$adminPilotMiddleware]);
 $app->router->get('/pilot/students/{id}', [\App\Controllers\PilotController::class, 'viewStudent'], [$adminPilotMiddleware]);
-$app->router->get('/pilot/companies', [\App\Controllers\PilotController::class, 'companies'], [$adminPilotMiddleware]);
+$app->router->get('/pilot/company', [\App\Controllers\PilotController::class, 'companies'], [$adminPilotMiddleware]);
 $app->router->get('/pilot/internships', [\App\Controllers\PilotController::class, 'internships'], [$adminPilotMiddleware]);
 $app->router->get('/pilot/statistics', [\App\Controllers\PilotController::class, 'statistics'], [$adminPilotMiddleware]);
 
@@ -99,12 +99,12 @@ $app->router->post('/admin/students/store', [\App\Controllers\AdminController::c
 $app->router->post('/admin/students/delete/{id}', [\App\Controllers\AdminController::class, 'deleteStudent'], [$adminMiddleware, $csrfMiddleware]);
 
 // Routes administrateur pour les entreprises
-$app->router->get('/admin/companies', [\App\Controllers\CompanyController::class, 'adminIndex'], [$adminPilotMiddleware]);
-$app->router->get('/admin/companies/create', [\App\Controllers\CompanyController::class, 'create'], [$adminPilotMiddleware]);
-$app->router->post('/admin/companies/store', [\App\Controllers\CompanyController::class, 'store'], [$adminPilotMiddleware, $csrfMiddleware]);
-$app->router->get('/admin/companies/edit/{id}', [\App\Controllers\CompanyController::class, 'edit'], [$adminPilotMiddleware]);
-$app->router->post('/admin/companies/update/{id}', [\App\Controllers\CompanyController::class, 'update'], [$adminPilotMiddleware, $csrfMiddleware]);
-$app->router->post('/admin/companies/delete/{id}', [\App\Controllers\CompanyController::class, 'delete'], [$adminPilotMiddleware, $csrfMiddleware]);
+$app->router->get('/admin/company', [\App\Controllers\CompanyController::class, 'adminIndex'], [$adminPilotMiddleware]);
+$app->router->get('/admin/company/create', [\App\Controllers\CompanyController::class, 'create'], [$adminPilotMiddleware]);
+$app->router->post('/admin/company/store', [\App\Controllers\CompanyController::class, 'store'], [$adminPilotMiddleware, $csrfMiddleware]);
+$app->router->get('/admin/company/edit/{id}', [\App\Controllers\CompanyController::class, 'edit'], [$adminPilotMiddleware]);
+$app->router->post('/admin/company/update/{id}', [\App\Controllers\CompanyController::class, 'update'], [$adminPilotMiddleware, $csrfMiddleware]);
+$app->router->post('/admin/company/delete/{id}', [\App\Controllers\CompanyController::class, 'delete'], [$adminPilotMiddleware, $csrfMiddleware]);
 
 // Routes administrateur pour les stages
 $app->router->get('/admin/internships', [\App\Controllers\InternshipController::class, 'adminIndex'], [$adminPilotMiddleware]);

@@ -128,6 +128,9 @@ class ApplicationController {
     /**
      * Afficher les détails d'une candidature
      */
+    /**
+     * Afficher les détails d'une candidature
+     */
     public function show($id) {
         $session = App::$app->session;
         $user = $session->get('user');
@@ -140,6 +143,7 @@ class ApplicationController {
         // Récupérer la candidature
         $application = $this->applicationModel->findById($id);
 
+        // Vérification critique : rediriger si l'application n'existe pas
         if (!$application) {
             $session->setFlash('error', 'Candidature non trouvée');
             return App::$app->response->redirect('/applications');

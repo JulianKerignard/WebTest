@@ -2,34 +2,37 @@
 // Définir le titre et la page courante
 $title = 'Détails de la candidature';
 $current_page = 'applications';
+
+// Importer le ViewHelper
+use App\Helpers\ViewHelper as View;
 ?>
 
 <div class="page-title">
     <h1>Détails de la candidature</h1>
-    <p>Suivez l'évolution de votre candidature pour le stage <strong><?= htmlspecialchars($application['Offer_title']) ?></strong></p>
+    <p>Suivez l'évolution de votre candidature pour le stage <strong><?= View::escape($application, 'Offer_title', 'Non spécifié') ?></strong></p>
 </div>
 
 <div class="application-detail-container">
     <div class="application-header">
         <div class="company-logo">
-            <?php if (!empty($application['company_logo'])): ?>
-                <img src="/uploads/company_logos/<?= htmlspecialchars($application['company_logo']) ?>" alt="<?= htmlspecialchars($application['company_name']) ?> Logo">
+            <?php if (View::has($application, 'company_logo')): ?>
+                <img src="/uploads/company_logos/<?= View::escape($application, 'company_logo') ?>" alt="<?= View::escape($application, 'company_name') ?> Logo">
             <?php else: ?>
-                <?= htmlspecialchars(substr($application['company_name'], 0, 2)) ?>
+                <?= View::has($application, 'company_name') ? htmlspecialchars(substr($application['company_name'], 0, 2)) : 'NA' ?>
             <?php endif; ?>
         </div>
         <div class="application-title">
-            <h2><?= htmlspecialchars($application['Offer_title']) ?></h2>
-            <p class="company-name"><?= htmlspecialchars($application['company_name']) ?></p>
+            <h2><?= View::escape($application, 'Offer_title', 'Titre non disponible') ?></h2>
+            <p class="company-name"><?= View::escape($application, 'company_name', 'Entreprise non spécifiée') ?></p>
             <p class="application-meta">
-                <span class="application-date"><i class="far fa-calendar"></i> Postuler le <?= date('d/m/Y', strtotime($application['created_at'])) ?></span>
-                <span class="application-location"><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($application['location']) ?></span>
+                <span class="application-date"><i class="far fa-calendar"></i> Postuler le <?= View::date($application, 'created_at', 'd/m/Y', 'Date inconnue') ?></span>
+                <span class="application-location"><i class="fas fa-map-marker-alt"></i> <?= View::escape($application, 'location', 'Non spécifié') ?></span>
             </p>
         </div>
-        <div class="application-status <?= $application['status'] ?>">
-            <span class="status-badge"><?= htmlspecialchars($application['status_label']) ?></span>
-            <?php if ($application['status'] === 'interview'): ?>
-                <p class="interview-date"><i class="far fa-calendar-check"></i> Entretien le <?= htmlspecialchars($application['interview_date_formatted']) ?></p>
+        <div class="application-status <?= View::safe($application, 'status', '') ?>">
+            <span class="status-badge"><?= View::escape($application, 'status_label', 'Statut inconnu') ?></span>
+            <?php if (View::safe($application, 'status') === 'interview' && View::has($application, 'interview_date_formatted')): ?>
+                <p class="interview-date"><i class="far fa-calendar-check"></i> Entretien le <?= View::escape($application, 'interview_date_formatted') ?></p>
             <?php endif; ?>
         </div>
     </div>
@@ -41,18 +44,22 @@ $current_page = 'applications';
                     <h3>Statut de la candidature</h3>
                 </div>
                 <div class="application-timeline">
-                    <?php foreach ($application['status_history'] as $history): ?>
-                        <div class="timeline-item">
-                            <div class="timeline-indicator <?= $history['status'] ?>"></div>
-                            <div class="timeline-content">
-                                <h4><?= htmlspecialchars($history['status_label']) ?></h4>
-                                <p class="timeline-date"><?= htmlspecialchars($history['time_ago']) ?></p>
-                                <?php if (!empty($history['comment'])): ?>
-                                    <p class="timeline-comment"><?= htmlspecialchars($history['comment']) ?></p>
-                                <?php endif; ?>
+                    <?php if (isset($application['status_history']) && is_array($application['status_history']) && !empty($application['status_history'])): ?>
+                        <?php foreach ($application['status_history'] as $history): ?>
+                            <div class="timeline-item">
+                                <div class="timeline-indicator <?= View::safe($history, 'status', '') ?>"></div>
+                                <div class="timeline-content">
+                                    <h4><?= View::escape($history, 'status_label', 'Statut inconnu') ?></h4>
+                                    <p class="timeline-date"><?= View::escape($history, 'time_ago', '') ?></p>
+                                    <?php if (View::has($history, 'comment')): ?>
+                                        <p class="timeline-comment"><?= nl2br(View::escape($history, 'comment')) ?></p>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="no-history">Aucun historique de statut disponible</p>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -62,7 +69,7 @@ $current_page = 'applications';
                 </div>
                 <div class="motivation-letter">
                     <div class="letter-content">
-                        <?= nl2br(htmlspecialchars($application['cover_letter'])) ?>
+                        <?= View::has($application, 'cover_letter') ? nl2br(htmlspecialchars($application['cover_letter'])) : 'Aucune lettre de motivation disponible' ?>
                     </div>
                 </div>
             </div>
@@ -76,27 +83,27 @@ $current_page = 'applications';
                 <div class="internship-details">
                     <div class="detail-group">
                         <h4>Durée</h4>
-                        <p><?= htmlspecialchars($application['internship_duration']) ?></p>
+                        <p><?= View::escape($application, 'internship_duration', 'Non spécifié') ?></p>
                     </div>
                     <div class="detail-group">
                         <h4>Rémunération</h4>
-                        <p><?= htmlspecialchars($application['monthly_remuneration']) ?> €/mois</p>
+                        <p><?= View::escape($application, 'monthly_remuneration', 'Non spécifié') ?> €/mois</p>
                     </div>
                     <div class="detail-group">
                         <h4>Date de début</h4>
-                        <p><?= !empty($application['Starting_internship_date']) ? date('d/m/Y', strtotime($application['Starting_internship_date'])) : 'Non spécifiée' ?></p>
+                        <p><?= View::has($application, 'Starting_internship_date') ? date('d/m/Y', strtotime($application['Starting_internship_date'])) : 'Non spécifiée' ?></p>
                     </div>
                     <div class="detail-group">
                         <h4>Localisation</h4>
-                        <p><?= htmlspecialchars($application['location']) ?></p>
+                        <p><?= View::escape($application, 'location', 'Non spécifié') ?></p>
                     </div>
                 </div>
                 <div class="internship-description">
                     <h4>Description du stage</h4>
-                    <p><?= nl2br(htmlspecialchars($application['offer_description'])) ?></p>
+                    <p><?= View::has($application, 'offer_description') ? nl2br(htmlspecialchars($application['offer_description'])) : 'Aucune description disponible' ?></p>
                 </div>
                 <div class="card-actions">
-                    <a href="/stages/<?= $application['offer_id'] ?>" class="btn btn-outline">Voir l'offre complète</a>
+                    <a href="/stages/<?= View::safe($application, 'offer_id', 0) ?>" class="btn btn-outline">Voir l'offre complète</a>
                 </div>
             </div>
 
@@ -105,12 +112,12 @@ $current_page = 'applications';
                     <h3>Votre CV</h3>
                 </div>
                 <div class="cv-preview">
-                    <?php if (!empty($application['cv_path'])): ?>
+                    <?php if (View::has($application, 'cv_path') && isset($application['cv_url'])): ?>
                         <div class="cv-embed">
-                            <iframe src="<?= $application['cv_url'] ?>" frameborder="0"></iframe>
+                            <iframe src="<?= htmlspecialchars($application['cv_url']) ?>" frameborder="0"></iframe>
                         </div>
                         <div class="cv-actions">
-                            <a href="/applications/download-cv/<?= $application['id'] ?>" class="btn btn-primary btn-sm">
+                            <a href="/applications/download-cv/<?= View::safe($application, 'id', 0) ?>" class="btn btn-primary btn-sm">
                                 <i class="fas fa-download"></i> Télécharger
                             </a>
                         </div>
@@ -123,15 +130,15 @@ $current_page = 'applications';
                 </div>
             </div>
 
-            <?php if ($application['status'] === 'interview'): ?>
+            <?php if (View::safe($application, 'status') === 'interview'): ?>
                 <div class="application-card">
                     <div class="card-header-alt">
                         <h3>Détails de l'entretien</h3>
                     </div>
                     <div class="interview-details">
-                        <p><i class="far fa-calendar-check"></i> <strong>Date:</strong> <?= date('d/m/Y', strtotime($application['interview_date'])) ?></p>
-                        <p><i class="far fa-clock"></i> <strong>Heure:</strong> <?= date('H:i', strtotime($application['interview_date'])) ?></p>
-                        <?php if (!empty($application['feedback'])): ?>
+                        <p><i class="far fa-calendar-check"></i> <strong>Date:</strong> <?= View::has($application, 'interview_date') ? date('d/m/Y', strtotime($application['interview_date'])) : 'Non spécifiée' ?></p>
+                        <p><i class="far fa-clock"></i> <strong>Heure:</strong> <?= View::has($application, 'interview_date') ? date('H:i', strtotime($application['interview_date'])) : 'Non spécifiée' ?></p>
+                        <?php if (View::has($application, 'feedback')): ?>
                             <div class="interview-instructions">
                                 <h4>Instructions</h4>
                                 <p><?= nl2br(htmlspecialchars($application['feedback'])) ?></p>
@@ -146,7 +153,7 @@ $current_page = 'applications';
                 </div>
             <?php endif; ?>
 
-            <?php if ($application['status'] === 'accepted'): ?>
+            <?php if (View::safe($application, 'status') === 'accepted'): ?>
                 <div class="application-card success-card">
                     <div class="card-header-alt">
                         <h3>Candidature acceptée !</h3>
@@ -156,7 +163,7 @@ $current_page = 'applications';
                             <i class="fas fa-check-circle"></i>
                         </div>
                         <p>Félicitations ! Votre candidature a été acceptée.</p>
-                        <?php if (!empty($application['feedback'])): ?>
+                        <?php if (View::has($application, 'feedback')): ?>
                             <div class="feedback-message">
                                 <h4>Message de l'entreprise</h4>
                                 <p><?= nl2br(htmlspecialchars($application['feedback'])) ?></p>
@@ -170,14 +177,14 @@ $current_page = 'applications';
                 </div>
             <?php endif; ?>
 
-            <?php if ($application['status'] === 'rejected'): ?>
+            <?php if (View::safe($application, 'status') === 'rejected'): ?>
                 <div class="application-card reject-card">
                     <div class="card-header-alt">
                         <h3>Candidature non retenue</h3>
                     </div>
                     <div class="reject-message">
                         <p>Nous sommes désolés, mais votre candidature n'a pas été retenue pour ce stage.</p>
-                        <?php if (!empty($application['feedback'])): ?>
+                        <?php if (View::has($application, 'feedback')): ?>
                             <div class="feedback-message">
                                 <h4>Feedback de l'entreprise</h4>
                                 <p><?= nl2br(htmlspecialchars($application['feedback'])) ?></p>
@@ -205,12 +212,12 @@ $current_page = 'applications';
             addToCalendarBtn.addEventListener('click', function(e) {
                 e.preventDefault();
 
-                <?php if (!empty($application['interview_date'])): ?>
+                <?php if (View::has($application, 'interview_date')): ?>
                 const interviewDate = new Date('<?= $application['interview_date'] ?>');
                 const endTime = new Date(interviewDate.getTime() + 60*60*1000); // 1 heure après
 
-                const title = 'Entretien - <?= addslashes($application['Offer_title']) ?>';
-                const details = 'Entretien pour le stage "<?= addslashes($application['Offer_title']) ?>" chez <?= addslashes($application['company_name']) ?>';
+                const title = 'Entretien - <?= View::escape($application, 'Offer_title', 'Stage') ?>';
+                const details = 'Entretien pour le stage "<?= View::escape($application, 'Offer_title', 'Stage') ?>" chez <?= View::escape($application, 'company_name', 'Entreprise') ?>';
 
                 const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&details=${encodeURIComponent(details)}&dates=${formatDate(interviewDate)}/${formatDate(endTime)}`;
 

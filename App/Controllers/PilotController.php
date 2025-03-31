@@ -99,7 +99,7 @@ class PilotController {
     }
 
     /**
-     * Display companies list
+     * Display company list
      */
     public function companies() {
         $session = App::$app->session;
@@ -112,8 +112,8 @@ class PilotController {
 
         $companies = $this->companyModel->findAll();
 
-        return $this->template->renderWithLayout('pilot/companies', 'dashboard', [
-            'companies' => $companies,
+        return $this->template->renderWithLayout('pilot/company', 'dashboard', [
+            'company' => $companies,
             'user' => $user
         ]);
     }

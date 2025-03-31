@@ -21,7 +21,7 @@ class CompanyController {
     }
 
     /**
-     * Display companies list
+     * Display company list
      */
     public function index() {
         $request = App::$app->request;
@@ -33,7 +33,7 @@ class CompanyController {
         $keyword = $request->get('keyword');
         $sectorId = $request->get('sector_id');
 
-        // Get companies
+        // Get company
         $companies = [];
         if ($keyword) {
             $companies = $this->companyModel->search($keyword);
@@ -50,8 +50,8 @@ class CompanyController {
         $session = App::$app->session;
         $user = $session->get('user');
 
-        return $this->template->renderWithLayout('companies/index', 'main', [
-            'companies' => $companies,
+        return $this->template->renderWithLayout('company/index', 'main', [
+            'company' => $companies,
             'pagination' => [
                 'page' => $page,
                 'total_pages' => $totalPages,
@@ -71,7 +71,7 @@ class CompanyController {
 
         if (!$company) {
             App::$app->session->setFlash('error', 'Entreprise non trouvée');
-            return App::$app->response->redirect('/companies');
+            return App::$app->response->redirect('/company');
         }
 
         // Get company offers
@@ -85,7 +85,7 @@ class CompanyController {
         $session = App::$app->session;
         $user = $session->get('user');
 
-        return $this->template->renderWithLayout('companies/show', 'main', [
+        return $this->template->renderWithLayout('company/show', 'main', [
             'company' => $company,
             'offers' => $offers,
             'evaluations' => $evaluations,
@@ -159,7 +159,7 @@ class CompanyController {
             return App::$app->response->redirect('/');
         }
 
-        return $this->template->renderWithLayout('admin/companies/create', 'dashboard', [
+        return $this->template->renderWithLayout('admin/company/create', 'dashboard', [
             'user' => $user
         ]);
     }
@@ -196,7 +196,7 @@ class CompanyController {
             return App::$app->response->json([
                 'success' => true,
                 'message' => 'Entreprise créée avec succès',
-                'redirect' => '/admin/companies'
+                'redirect' => '/admin/company'
             ]);
         } else {
             return App::$app->response->json([
@@ -222,10 +222,10 @@ class CompanyController {
 
         if (!$company) {
             $session->setFlash('error', 'Entreprise non trouvée');
-            return App::$app->response->redirect('/admin/companies');
+            return App::$app->response->redirect('/admin/company');
         }
 
-        return $this->template->renderWithLayout('admin/companies/edit', 'dashboard', [
+        return $this->template->renderWithLayout('admin/company/edit', 'dashboard', [
             'company' => $company,
             'user' => $user
         ]);
@@ -262,7 +262,7 @@ class CompanyController {
         return App::$app->response->json([
             'success' => true,
             'message' => 'Entreprise mise à jour avec succès',
-            'redirect' => '/admin/companies'
+            'redirect' => '/admin/company'
         ]);
     }
 

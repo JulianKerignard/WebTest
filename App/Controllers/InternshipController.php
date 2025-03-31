@@ -53,7 +53,7 @@ class InternshipController {
 
         return $this->template->renderWithLayout('stages/index', 'main', [
             'internships' => $internships,
-            'companies' => $companies,
+            'company' => $companies,
             'levels' => $levels,
             'filters' => $filters,
             'pagination' => [
@@ -114,7 +114,7 @@ class InternshipController {
         $skills = $this->internshipModel->getSkills();
 
         return $this->template->renderWithLayout('admin/internships/create', 'dashboard', [
-            'companies' => $companies,
+            'company' => $companies,
             'levels' => $levels,
             'skills' => $skills,
             'user' => $user
@@ -193,7 +193,7 @@ class InternshipController {
 
         return $this->template->renderWithLayout('admin/internships/edit', 'dashboard', [
             'internship' => $internship,
-            'companies' => $companies,
+            'company' => $companies,
             'levels' => $levels,
             'skills' => $skills,
             'internshipSkills' => $internshipSkills,

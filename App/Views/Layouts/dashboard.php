@@ -82,7 +82,7 @@
                     <li<?= $current_page === 'students' ? ' class="active"' : '' ?>>
                         <a href="/pilot/students"><i class="fas fa-users"></i> Étudiants</a>
                     </li>
-                    <li<?= $current_page === 'companies' ? ' class="active"' : '' ?>>
+                    <li<?= $current_page === 'company' ? ' class="active"' : '' ?>>
                         <a href="/pilot/companies"><i class="fas fa-building"></i> Entreprises</a>
                     </li>
                     <li<?= $current_page === 'internships' ? ' class="active"' : '' ?>>
@@ -101,7 +101,7 @@
                     <li<?= $current_page === 'users' ? ' class="active"' : '' ?>>
                         <a href="/admin/users"><i class="fas fa-users"></i> Utilisateurs</a>
                     </li>
-                    <li<?= $current_page === 'companies' ? ' class="active"' : '' ?>>
+                    <li<?= $current_page === 'company' ? ' class="active"' : '' ?>>
                         <a href="/admin/companies"><i class="fas fa-building"></i> Entreprises</a>
                     </li>
                     <li<?= $current_page === 'pilots' ? ' class="active"' : '' ?>>

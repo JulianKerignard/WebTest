@@ -253,7 +253,7 @@ $current_page = 'entreprises';
 
         <?php if (isset($pagination) && $pagination['total_pages'] > 1): ?>
             <div class="pagination">
-                <a href="<?= $pagination['current_page'] > 1 ? '/companies?' . http_build_query(array_merge($_GET, ['page' => $pagination['current_page'] - 1])) : '#' ?>"
+                <a href="<?= $pagination['current_page'] > 1 ? '/company?' . http_build_query(array_merge($_GET, ['page' => $pagination['current_page'] - 1])) : '#' ?>"
                    class="pagination-prev <?= $pagination['current_page'] <= 1 ? 'disabled' : '' ?>">
                     <i class="fas fa-chevron-left"></i>
                 </a>
@@ -267,7 +267,7 @@ $current_page = 'entreprises';
                     <?php endif; ?>
                 <?php endfor; ?>
 
-                <a href="<?= $pagination['current_page'] < $pagination['total_pages'] ? '/companies?' . http_build_query(array_merge($_GET, ['page' => $pagination['current_page'] + 1])) : '#' ?>"
+                <a href="<?= $pagination['current_page'] < $pagination['total_pages'] ? '/company?' . http_build_query(array_merge($_GET, ['page' => $pagination['current_page'] + 1])) : '#' ?>"
                    class="pagination-next <?= $pagination['current_page'] >= $pagination['total_pages'] ? 'disabled' : '' ?>">
                     <i class="fas fa-chevron-right"></i>
                 </a>
