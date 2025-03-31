@@ -33,9 +33,8 @@ class InternshipController {
         // Récupérer les filtres simplifiés
         $filters = [
             'keyword' => $request->get('keyword'),
+            'location' => $request->get('location'),
             'company_id' => $request->get('company_id'),
-            'level_id' => $request->get('level_id'),
-            'min_remuneration' => $request->get('min_remuneration'),
             'limit' => $limit,
             'offset' => $offset
         ];
@@ -43,13 +42,14 @@ class InternshipController {
         // Récupérer les offres de stage
         $internships = $this->internshipModel->search($filters);
 
-        // Déterminer le nombre total d'offres pour la pagination
-        $totalInternships = count($this->internshipModel->search(['keyword' => $filters['keyword'], 'company_id' => $filters['company_id'], 'level_id' => $filters['level_id']]));
+        // Estimation du nombre total d'offres pour la pagination
+        $filtersForCount = [
+            'keyword' => $filters['keyword'],
+            'location' => $filters['location'],
+            'company_id' => $filters['company_id']
+        ];
+        $totalInternships = count($this->internshipModel->search($filtersForCount));
         $totalPages = ceil($totalInternships / $limit);
-
-        // Récupérer les données pour les filtres
-        $companies = $this->companyModel->findAll();
-        $levels = $this->internshipModel->getLevels();
 
         // Vérifier si l'utilisateur est connecté
         $session = App::$app->session;
@@ -67,14 +67,12 @@ class InternshipController {
 
         return $this->template->renderWithLayout('stages/index', 'main', [
             'internships' => $internships,
-            'companies' => $companies,
-            'levels' => $levels,
-            'filters' => $filters,
             'pagination' => [
                 'current_page' => $page,
                 'total_pages' => $totalPages,
                 'total_items' => $totalInternships
             ],
+            'filters' => $filters,
             'user' => $user,
             'csrf_token' => $csrfToken
         ]);
@@ -210,94 +208,6 @@ class InternshipController {
             return App::$app->response->json([
                 'success' => false,
                 'message' => 'Erreur lors de la création de l\'offre de stage'
-            ], 500);
-        }
-    }
-
-    /**
-     * Affiche le formulaire d'édition d'offre de stage
-     */
-    public function edit($id) {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
-            $session->setFlash('error', 'Accès non autorisé');
-            return App::$app->response->redirect('/login');
-        }
-
-        $internship = $this->internshipModel->findById($id);
-
-        if (!$internship) {
-            $session->setFlash('error', 'Stage non trouvé');
-            return App::$app->response->redirect('/admin/internships');
-        }
-
-        $companies = $this->companyModel->findAll();
-        $levels = $this->internshipModel->getLevels();
-        $skills = $this->internshipModel->getSkills();
-        $internshipSkills = $this->internshipModel->getSkillsForOffer($id);
-
-        return $this->template->renderWithLayout('admin/internships/edit', 'dashboard', [
-            'internship' => $internship,
-            'companies' => $companies,
-            'levels' => $levels,
-            'skills' => $skills,
-            'internshipSkills' => $internshipSkills,
-            'user' => $user
-        ]);
-    }
-
-    /**
-     * Met à jour une offre de stage
-     */
-    public function update($id) {
-        $request = App::$app->request;
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Accès non autorisé'
-            ], 403);
-        }
-
-        $data = $request->getBody();
-
-        // Validation simplifiée
-        if (empty($data['Offer_title']) || empty($data['Description']) || empty($data['ID_Company'])) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Veuillez remplir tous les champs obligatoires'
-            ], 400);
-        }
-
-        // Mettre à jour l'offre de stage
-        $result = $this->internshipModel->update($id, $data);
-
-        if ($result) {
-            // Gérer les compétences si elles sont spécifiées
-            if (isset($data['skills'])) {
-                // Supprimer les anciennes compétences
-                $this->internshipModel->removeAllSkills($id);
-
-                // Ajouter les nouvelles
-                $skills = explode(',', $data['skills']);
-                foreach ($skills as $skillId) {
-                    $this->internshipModel->addSkill($id, $skillId);
-                }
-            }
-
-            return App::$app->response->json([
-                'success' => true,
-                'message' => 'Offre de stage mise à jour avec succès',
-                'redirect' => '/admin/internships'
-            ]);
-        } else {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Erreur lors de la mise à jour de l\'offre de stage'
             ], 500);
         }
     }

@@ -40,8 +40,7 @@ class Wishlist {
     public function getWishlist($studentId) {
         return $this->db->fetchAll("
             SELECT w.*, o.Offer_title, o.Description as offer_description, c.Name as company_name,
-                   o.internship_duration, o.monthly_remuneration, o.Date_of_publication,
-                   o.location, o.Starting_internship_date
+                   o.internship_duration, o.monthly_remuneration, o.location
             FROM wishlist w
             JOIN Offers o ON w.offer_id = o.ID_Offer
             JOIN Company c ON o.ID_Company = c.ID_Company
@@ -70,12 +69,5 @@ class Wishlist {
         ", [$studentId]);
 
         return $result ? $result['count'] : 0;
-    }
-
-    /**
-     * Vide la wishlist d'un étudiant
-     */
-    public function clearStudentWishlist($studentId) {
-        return $this->db->delete('wishlist', 'student_id = ?', [$studentId]);
     }
 }

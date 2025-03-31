@@ -32,17 +32,11 @@ class CompanyController {
 
         // Récupérer les paramètres de recherche simplifiés
         $keyword = $request->get('keyword');
-        $sectorId = $request->get('sector_id');
 
         // Récupérer les entreprises
-        $companies = [];
-        if ($keyword) {
-            $companies = $this->companyModel->search($keyword);
-        } else if ($sectorId) {
-            $companies = $this->companyModel->findBySector($sectorId);
-        } else {
-            $companies = $this->companyModel->findAll($limit, $offset);
-        }
+        $companies = $keyword
+            ? $this->companyModel->search($keyword)
+            : $this->companyModel->findAll($limit, $offset);
 
         $totalCompanies = $this->companyModel->getTotalCompanies();
         $totalPages = ceil($totalCompanies / $limit);
@@ -66,7 +60,6 @@ class CompanyController {
                 'total_items' => $totalCompanies
             ],
             'keyword' => $keyword,
-            'sector_id' => $sectorId,
             'user' => $user,
             'csrf_token' => $csrfToken
         ]);
@@ -230,75 +223,6 @@ class CompanyController {
             return App::$app->response->json([
                 'success' => false,
                 'message' => 'Erreur lors de la création de l\'entreprise'
-            ], 500);
-        }
-    }
-
-    /**
-     * Afficher le formulaire d'édition d'entreprise
-     */
-    public function edit($id) {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
-            $session->setFlash('error', 'Accès non autorisé');
-            return App::$app->response->redirect('/login');
-        }
-
-        $company = $this->companyModel->findById($id);
-        if (!$company) {
-            $session->setFlash('error', 'Entreprise non trouvée');
-            return App::$app->response->redirect('/admin/companies');
-        }
-
-        $sectors = $this->companyModel->getSectors();
-
-        return $this->template->renderWithLayout('admin/companies/edit', 'dashboard', [
-            'company' => $company,
-            'sectors' => $sectors,
-            'user' => $user
-        ]);
-    }
-
-    /**
-     * Mettre à jour une entreprise
-     */
-    public function update($id) {
-        $request = App::$app->request;
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || ($user['role'] !== 'admin' && $user['role'] !== 'pilot')) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Accès non autorisé'
-            ], 403);
-        }
-
-        $data = $request->getBody();
-
-        // Validation simplifiée
-        if (empty($data['Name']) || empty($data['Description'])) {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Le nom et la description sont obligatoires'
-            ], 400);
-        }
-
-        // Mettre à jour l'entreprise
-        $result = $this->companyModel->update($id, $data);
-
-        if ($result) {
-            return App::$app->response->json([
-                'success' => true,
-                'message' => 'Entreprise mise à jour avec succès',
-                'redirect' => '/admin/companies'
-            ]);
-        } else {
-            return App::$app->response->json([
-                'success' => false,
-                'message' => 'Erreur lors de la mise à jour de l\'entreprise'
             ], 500);
         }
     }

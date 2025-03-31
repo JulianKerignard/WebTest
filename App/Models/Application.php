@@ -46,6 +46,13 @@ class Application {
         ]);
 
         if ($applicationId) {
+            $this->db->insert('application_status_history', [
+                'application_id' => $applicationId,
+                'status' => self::STATUS_PENDING,
+                'comment' => 'Candidature créée',
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
             return [
                 'success' => true,
                 'id' => $applicationId,
@@ -65,10 +72,7 @@ class Application {
     public function findByStudentId($studentId, $limit = null, $offset = 0) {
         $sql = "
             SELECT a.*, o.Offer_title, o.Description as offer_description, 
-                c.Name as company_name, c.Logo as company_logo,
-                SUBSTRING(c.Name, 1, 2) as company_initials,
-                o.location, o.Starting_internship_date, o.monthly_remuneration,
-                o.internship_duration
+                c.Name as company_name, o.location
             FROM applications a
             JOIN Offers o ON a.offer_id = o.ID_Offer
             JOIN Company c ON o.ID_Company = c.ID_Company
@@ -89,41 +93,6 @@ class Application {
         // Ajouter les labels pour les statuts
         foreach ($applications as &$application) {
             $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
-            $application['time_ago'] = $this->getTimeAgo($application['created_at']);
-        }
-
-        return $applications;
-    }
-
-    /**
-     * Récupère les candidatures pour une offre donnée
-     */
-    public function findByOfferId($offerId, $limit = null, $offset = 0) {
-        $sql = "
-            SELECT a.*, 
-                acc.Username as student_name, acc.Email as student_email,
-                s.CV, s.promotion, s.school_name, s.study_field
-            FROM applications a
-            JOIN Student s ON a.student_id = s.ID_account
-            JOIN Account acc ON s.ID_account = acc.ID_account
-            WHERE a.offer_id = ?
-            ORDER BY a.created_at DESC
-        ";
-
-        $params = [$offerId];
-
-        if ($limit !== null) {
-            $sql .= " LIMIT ? OFFSET ?";
-            $params[] = $limit;
-            $params[] = $offset;
-        }
-
-        $applications = $this->db->fetchAll($sql, $params);
-
-        // Ajouter les labels pour les statuts
-        foreach ($applications as &$application) {
-            $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
-            $application['time_ago'] = $this->getTimeAgo($application['created_at']);
         }
 
         return $applications;
@@ -145,6 +114,14 @@ class Application {
         $result = $this->db->update('applications', $data, 'id = ?', [$applicationId]);
 
         if ($result) {
+            // Ajouter un historique de statut
+            $this->db->insert('application_status_history', [
+                'application_id' => $applicationId,
+                'status' => $status,
+                'comment' => $feedback,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
             return [
                 'success' => true,
                 'message' => 'Statut de la candidature mis à jour avec succès'
@@ -163,57 +140,27 @@ class Application {
     public function findById($id) {
         $application = $this->db->fetch("
             SELECT a.*, 
-                o.Offer_title, o.Description as offer_description, 
-                c.Name as company_name, c.ID_Company as company_id, c.Logo as company_logo,
-                acc.Username as student_name, acc.Email as student_email, 
-                s.CV, s.promotion, s.school_name, s.study_field
+                o.Offer_title, o.Description as offer_description, o.location,
+                o.internship_duration, o.monthly_remuneration, o.Starting_internship_date,
+                c.Name as company_name, c.ID_Company as company_id
             FROM applications a
             JOIN Offers o ON a.offer_id = o.ID_Offer
             JOIN Company c ON o.ID_Company = c.ID_Company
-            JOIN Student s ON a.student_id = s.ID_account
-            JOIN Account acc ON s.ID_account = acc.ID_account
             WHERE a.id = ?
         ", [$id]);
 
         if ($application) {
             $application['status_label'] = self::$statusLabels[$application['status']] ?? 'Inconnu';
-            $application['time_ago'] = $this->getTimeAgo($application['created_at']);
+
+            // Récupérer l'historique des statuts
+            $application['status_history'] = $this->db->fetchAll("
+                SELECT * FROM application_status_history 
+                WHERE application_id = ? 
+                ORDER BY created_at DESC
+            ", [$id]);
         }
 
         return $application;
-    }
-
-    /**
-     * Récupère les statistiques des candidatures
-     */
-    public function getApplicationStatistics($userId = null, $role = null) {
-        $stats = [];
-        $params = [];
-        $whereClause = '';
-
-        // Filtrer par utilisateur et rôle si spécifié
-        if ($userId && $role) {
-            if ($role === 'student') {
-                $whereClause = ' WHERE a.student_id = ?';
-                $params[] = $userId;
-            } elseif ($role === 'company') {
-                $whereClause = ' WHERE o.ID_Company = ?';
-                $params[] = $userId;
-            }
-        }
-
-        // Total des candidatures
-        $totalQuery = "SELECT COUNT(*) as count FROM applications a JOIN Offers o ON a.offer_id = o.ID_Offer" . $whereClause;
-        $stats['total'] = $this->db->fetch($totalQuery, $params)['count'];
-
-        // Candidatures par statut
-        foreach (self::$statusLabels as $status => $label) {
-            $statusQuery = "SELECT COUNT(*) as count FROM applications a JOIN Offers o ON a.offer_id = o.ID_Offer WHERE a.status = ?" . ($whereClause ? ' AND ' . substr($whereClause, 7) : '');
-            $statusParams = array_merge([$status], $params);
-            $stats[strtolower($status)] = $this->db->fetch($statusQuery, $statusParams)['count'];
-        }
-
-        return $stats;
     }
 
     /**
@@ -230,40 +177,26 @@ class Application {
     }
 
     /**
-     * Supprime une candidature
+     * Récupère des statistiques basiques de candidatures pour un étudiant
      */
-    public function delete($id) {
-        return $this->db->delete('applications', 'id = ?', [$id]);
-    }
+    public function getStudentStats($studentId) {
+        $stats = [];
 
-    /**
-     * Formatte le temps écoulé depuis une date
-     */
-    private function getTimeAgo($datetime) {
-        $time = strtotime($datetime);
-        $now = time();
-        $diff = $now - $time;
+        // Total des candidatures
+        $result = $this->db->fetch("
+            SELECT COUNT(*) as count FROM applications WHERE student_id = ?
+        ", [$studentId]);
+        $stats['total'] = $result['count'] ?? 0;
 
-        if ($diff < 60) {
-            return "Il y a quelques secondes";
-        } else if ($diff < 3600) {
-            $mins = floor($diff / 60);
-            return "Il y a " . $mins . " minute" . ($mins > 1 ? "s" : "");
-        } else if ($diff < 86400) {
-            $hours = floor($diff / 3600);
-            return "Il y a " . $hours . " heure" . ($hours > 1 ? "s" : "");
-        } else if ($diff < 604800) {
-            $days = floor($diff / 86400);
-            return "Il y a " . $days . " jour" . ($days > 1 ? "s" : "");
-        } else if ($diff < 2592000) {
-            $weeks = floor($diff / 604800);
-            return "Il y a " . $weeks . " semaine" . ($weeks > 1 ? "s" : "");
-        } else if ($diff < 31536000) {
-            $months = floor($diff / 2592000);
-            return "Il y a " . $months . " mois";
-        } else {
-            $years = floor($diff / 31536000);
-            return "Il y a " . $years . " an" . ($years > 1 ? "s" : "");
+        // Par statut
+        foreach (self::$statusLabels as $status => $label) {
+            $result = $this->db->fetch("
+                SELECT COUNT(*) as count FROM applications 
+                WHERE student_id = ? AND status = ?
+            ", [$studentId, $status]);
+            $stats[$status] = $result['count'] ?? 0;
         }
+
+        return $stats;
     }
 }

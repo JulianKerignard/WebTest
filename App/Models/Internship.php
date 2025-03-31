@@ -45,22 +45,13 @@ class Internship {
     }
 
     /**
-     * Recherche des offres de stage avec des filtres de base
+     * Recherche basique des offres de stage
      */
     public function search($filters = []) {
-        $conditions = [];
+        $conditions = ['o.status = "active"'];
         $params = [];
 
-        $sql = "
-            SELECT o.*, c.Name as company_name 
-            FROM Offers o
-            JOIN Company c ON o.ID_Company = c.ID_Company
-        ";
-
-        // Par défaut, afficher seulement les offres actives
-        $conditions[] = "o.status = 'active'";
-
-        // Recherche par mot-clé (titre, description, nom de l'entreprise)
+        // Recherche par mot-clé
         if (!empty($filters['keyword'])) {
             $conditions[] = "(o.Offer_title LIKE ? OR o.Description LIKE ? OR c.Name LIKE ?)";
             $keyword = "%{$filters['keyword']}%";
@@ -69,31 +60,25 @@ class Internship {
             $params[] = $keyword;
         }
 
+        // Filtrer par localisation
+        if (!empty($filters['location'])) {
+            $conditions[] = "o.location LIKE ?";
+            $params[] = "%{$filters['location']}%";
+        }
+
         // Filtrer par entreprise
         if (!empty($filters['company_id'])) {
             $conditions[] = "o.ID_Company = ?";
             $params[] = $filters['company_id'];
         }
 
-        // Filtrer par niveau d'études
-        if (!empty($filters['level_id'])) {
-            $conditions[] = "o.ID_level = ?";
-            $params[] = $filters['level_id'];
-        }
-
-        // Filtrer par rémunération minimale
-        if (!empty($filters['min_remuneration'])) {
-            $conditions[] = "o.monthly_remuneration >= ?";
-            $params[] = $filters['min_remuneration'];
-        }
-
-        // Ajouter les conditions à la requête
-        if (!empty($conditions)) {
-            $sql .= " WHERE " . implode(" AND ", $conditions);
-        }
-
-        // Tri par date de publication (le plus récent d'abord)
-        $sql .= " ORDER BY o.Date_of_publication DESC";
+        $sql = "
+            SELECT o.*, c.Name as company_name 
+            FROM Offers o
+            JOIN Company c ON o.ID_Company = c.ID_Company
+            WHERE " . implode(' AND ', $conditions) . "
+            ORDER BY o.Date_of_publication DESC
+        ";
 
         // Pagination
         if (isset($filters['limit']) && isset($filters['offset'])) {
@@ -111,17 +96,17 @@ class Internship {
     public function create($data) {
         return $this->db->insert('Offers', [
             'ID_Company' => $data['ID_Company'],
-            'Nomber_of_remaining_internship_places' => $data['Nomber_of_remaining_internship_places'] ?? 1,
-            'Description' => $data['Description'],
-            'Date_of_publication' => $data['Date_of_publication'] ?? date('Y-m-d'),
             'Offer_title' => $data['Offer_title'],
+            'Description' => $data['Description'],
+            'Nomber_of_remaining_internship_places' => $data['Nomber_of_remaining_internship_places'] ?? 1,
+            'Date_of_publication' => $data['Date_of_publication'] ?? date('Y-m-d'),
             'ID_level' => $data['ID_level'] ?? null,
             'Starting_internship_date' => $data['Starting_internship_date'] ?? null,
             'internship_duration' => $data['internship_duration'] ?? null,
             'monthly_remuneration' => $data['monthly_remuneration'] ?? null,
             'location' => $data['location'] ?? null,
             'remote_possible' => isset($data['remote_possible']) ? 1 : 0,
-            'status' => $data['status'] ?? 'active'
+            'status' => 'active'
         ]);
     }
 
@@ -131,9 +116,8 @@ class Internship {
     public function update($id, $data) {
         return $this->db->update('Offers', [
             'ID_Company' => $data['ID_Company'],
-            'Nomber_of_remaining_internship_places' => $data['Nomber_of_remaining_internship_places'] ?? 1,
-            'Description' => $data['Description'],
             'Offer_title' => $data['Offer_title'],
+            'Description' => $data['Description'],
             'ID_level' => $data['ID_level'] ?? null,
             'Starting_internship_date' => $data['Starting_internship_date'] ?? null,
             'internship_duration' => $data['internship_duration'] ?? null,
@@ -191,13 +175,6 @@ class Internship {
         } catch (\Exception $e) {
             return false;
         }
-    }
-
-    /**
-     * Supprime toutes les compétences associées à une offre
-     */
-    public function removeAllSkills($offerId) {
-        return $this->db->delete('offer_skills', 'offer_id = ?', [$offerId]);
     }
 
     /**

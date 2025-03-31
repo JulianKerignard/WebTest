@@ -14,9 +14,7 @@ class Company {
      * Récupère toutes les entreprises avec pagination optionnelle
      */
     public function findAll($limit = null, $offset = 0) {
-        $sql = "SELECT c.*, s.Sector as sector_name,
-               (SELECT COUNT(*) FROM Offers WHERE ID_Company = c.ID_Company) as offers_count
-               FROM Company c
+        $sql = "SELECT c.*, s.Sector as sector_name FROM Company c
                LEFT JOIN Sector_Of_Activity s ON c.ID_Sector = s.ID_Sector
                ORDER BY c.Name";
 
@@ -51,12 +49,12 @@ class Company {
             SELECT c.*, s.Sector as sector_name
             FROM Company c
             LEFT JOIN Sector_Of_Activity s ON c.ID_Sector = s.ID_Sector
-            WHERE c.Name LIKE ? OR c.Description LIKE ? OR s.Sector LIKE ?
+            WHERE c.Name LIKE ? OR c.Description LIKE ?
             ORDER BY c.Name
         ";
 
         $keyword = "%" . $keyword . "%";
-        return $this->db->fetchAll($sql, [$keyword, $keyword, $keyword]);
+        return $this->db->fetchAll($sql, [$keyword, $keyword]);
     }
 
     /**
@@ -108,19 +106,6 @@ class Company {
     }
 
     /**
-     * Récupère les entreprises par secteur d'activité
-     */
-    public function findBySector($sectorId) {
-        return $this->db->fetchAll("
-            SELECT c.*, s.Sector as sector_name
-            FROM Company c
-            LEFT JOIN Sector_Of_Activity s ON c.ID_Sector = s.ID_Sector
-            WHERE c.ID_Sector = ?
-            ORDER BY c.Name
-        ", [$sectorId]);
-    }
-
-    /**
      * Récupère les offres d'une entreprise
      */
     public function getOffers($companyId) {
@@ -139,15 +124,6 @@ class Company {
     public function getTotalCompanies() {
         $result = $this->db->fetch("SELECT COUNT(*) as count FROM Company");
         return $result ? $result['count'] : 0;
-    }
-
-    /**
-     * Trouve une entreprise associée à un compte utilisateur
-     */
-    public function findByAccountId($accountId) {
-        // Cette méthode devrait être implémentée si les entreprises sont liées à des comptes utilisateurs
-        // Pour le moment, on retourne null
-        return null;
     }
 
     /**

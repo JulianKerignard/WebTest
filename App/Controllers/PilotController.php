@@ -6,21 +6,18 @@ use App\Core\Template;
 use App\Models\Pilot;
 use App\Models\Student;
 use App\Models\Internship;
-use App\Models\Company;
 
 class PilotController {
     private $template;
     private $pilotModel;
     private $studentModel;
     private $internshipModel;
-    private $companyModel;
 
     public function __construct() {
         $this->template = new Template();
         $this->pilotModel = new Pilot();
         $this->studentModel = new Student();
         $this->internshipModel = new Internship();
-        $this->companyModel = new Company();
     }
 
     /**
@@ -95,26 +92,6 @@ class PilotController {
 
         return $this->template->renderWithLayout('pilot/student-view', 'dashboard', [
             'student' => $student,
-            'user' => $user
-        ]);
-    }
-
-    /**
-     * Affiche la liste des entreprises
-     */
-    public function companies() {
-        $session = App::$app->session;
-        $user = $session->get('user');
-
-        if (!$user || $user['role'] !== 'pilot') {
-            $session->setFlash('error', 'Accès non autorisé');
-            return App::$app->response->redirect('/login');
-        }
-
-        $companies = $this->companyModel->findAll();
-
-        return $this->template->renderWithLayout('pilot/companies', 'dashboard', [
-            'companies' => $companies,
             'user' => $user
         ]);
     }
