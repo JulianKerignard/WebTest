@@ -1,0 +1,42 @@
+name: Deploy to Apache Server
+
+on:
+  push:
+    branches: [ main ]  # ou master, selon votre branche principale
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Setup known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          
+      - name: Deploy to server
+        run: |
+          rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT }}" \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.gitignore' \
+            ./ ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/var/www/votre-site/
+            
+      - name: Set permissions and restart Apache
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            sudo chown -R ${{ secrets.SSH_USERNAME }}:www-data /var/www/votre-site
+            sudo chmod -R 755 /var/www/votre-site
+            sudo systemctl restart apache2
